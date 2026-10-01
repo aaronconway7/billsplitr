@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "type": "link",
+  "title": "BillSplitr",
+  "description": "Add the bill, tap who had what, see who owes what. No sign-up.",
+  "provider_name": "BillSplitr",
+  "provider_url": "https://usebillsplitr.netlify.app/",
+  "thumbnail_url": "https://usebillsplitr.netlify.app/og-image.jpg",
+  "thumbnail_width": 1200,
+  "thumbnail_height": 630
+}
