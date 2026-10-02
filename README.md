@@ -1,61 +1,36 @@
 # BillSplitr
 
 <p align="center">
-  <a href="https://app.netlify.com/projects/usebillsplitr/deploys"><img src="https://api.netlify.com/api/v1/badges/8283874a-88d8-4366-9e0f-6d543f84d2e5/deploy-status" alt="Netlify Status" /></a>
+  <a href="https://app.netlify.com/projects/usebillsplitr/deploys"><img src="https://api.netlify.com/api/v1/badges/8283874a-88d8-4366-9e0f-6d543f84d2e5/deploy-status" alt="Netlify deploy status" /></a>
 </p>
 
 <p align="center">
   <img src="./og-image.jpg" alt="BillSplitr preview" width="1200" />
 </p>
 
-A simple, fast way to split a bill without creating an account. Add the bill, assign what each person ordered, adjust service/tip, and instantly see who owes what.
+A clean, no-fuss way to split a bill. Add people, assign items, adjust the service/tip, and instantly see who owes what.
 
-Live app: https://usebillsplitr.netlify.app/
-
-## Why BillSplitr?
-
-- No signup, no accounts, no friction
-- Works for meals, coffees, takeaways, and shared expenses
-- Splits items proportionally by who ordered what
-- Supports service/tip percentages and a custom payer
-- Generates a shareable link so everyone can view the exact same bill
-- Works locally and in the browser with no build step
-
-## How it works
-
-1. Add the people splitting the bill.
-2. Add each item and assign it to the relevant people.
-3. Choose a service or tip percentage if needed.
-4. Share the final split with your group.
+Live demo: https://usebillsplitr.netlify.app/
 
 ## Features
 
-- Quick item-by-item bill entry
-- Per-person item allocation
-- Custom service/tip percentage or preset percentages
-- Automatic total calculations and balances
-- Read-only shared links for easy sending
-- Reset flow to start a new bill in seconds
+- Split bills in seconds
+- Assign items to specific people
+- Optional service/tip percentage
+- Shareable bill links for the group
+- Works entirely in the browser
 
 ## Run locally
-
-Because this project is a static web app, you can open it directly in a browser or serve it locally:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then visit http://localhost:8000 in your browser.
+Then open http://localhost:8000
 
-## Project structure
+## Project files
 
-- `index.html` — app logic, styles, and UI
-- `og-image.jpg` — social preview image used in the app and README
-- `favicon.*` and `apple-touch-icon.png` — branding assets
-- `oembed.json` — share metadata for embeds
-
-## Credits
-
-Built by Aaron Conway.
-
-If you want a cleaner, zero-friction way to split group bills, BillSplitr is built for exactly that.
+- `index.html` — app UI and logic
+- `og-image.jpg` — social preview image
+- `favicon.*` and `apple-touch-icon.png` — brand assets
+- `oembed.json` — embed metadata
