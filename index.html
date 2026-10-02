@@ -106,7 +106,7 @@ footer a:hover{text-decoration:underline}
 <div class="card"><h2>Share</h2>
 <div class="share"><button class="p" id="cp">Copy link</button><button id="wa">Copy for WhatsApp</button></div>
 <input id="link" readonly aria-label="Shareable link">
-<p class="mute" style="margin:8px 0 0">The link contains the whole bill, so friends open it and see exactly the same split. Edits need a fresh link.</p>
+<p class="mute" style="margin:8px 0 0">The link contains the whole bill, so friends open it and see exactly the same split. Edits need a fresh link. Works locally too.</p>
 <button id="reset" style="margin-top:10px">Start a new bill</button></div>
 </main>
 <footer>Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer">Aaron</a> 🍔</footer>
@@ -150,7 +150,7 @@ function render(){
  $('res').innerHTML=h;
  $('payer').innerHTML=S.p.map(function(p,k){return '<button class="chip'+(S.pd===k?' on':'')+'" data-pd="'+k+'"'+(RO?' disabled':'')+'>'+esc(p)+'</button>'}).join('')||'—';
  $('pn').disabled=RO;$('addP').disabled=RO;$('in').disabled=RO;$('ia').disabled=RO;$('addI').disabled=RO;
- var e=enc(),ok=/^https?:/.test(location.href);$('link').value=ok?location.href.split('#')[0]+'#'+e:'';$('link').placeholder='Share link appears once the page is hosted online';
+ var e=enc();$('link').value=location.href.split('#')[0]+'#'+e;$('link').placeholder='Share link will appear here';
  try{if(!RO)localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}
  try{if(!RO)history.replaceState(null,'','#'+e)}catch(x){}}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
@@ -171,13 +171,13 @@ document.addEventListener('click',function(e){var b=e.target.closest('button');i
  else if(d.sc!==undefined){S.sc=parseFloat(d.sc);render()}
  else if(d.pd!==undefined){S.pd=S.pd===+d.pd?-1:+d.pd;render()}});
 document.addEventListener('change',function(e){if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}});
-$('cp').onclick=function(){var v=$('link').value;if(!v)return toast('Link works once the page is hosted online');copy(v,'Link copied')};
+$('cp').onclick=function(){var v=$('link').value;if(!v)return toast('Link unavailable');copy(v,'Link copied')};
 $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  var t='🧾 *Bill split*\nTotal: *'+gbp(c.sub+c.svc)+'*'+(S.sc?' (incl. '+S.sc+'% service)':'')+'\n\n';
  t+=pd?'💸 *Pay '+pd+':*\n':'*Who owes what:*\n';
  S.p.forEach(function(p,k){if(k!==S.pd)t+='• '+p+' – '+gbp(c.tot[k])+'\n'});
  if(c.un)t+='\n⚠️ '+gbp(c.un)+' not yet assigned\n';
- L=$('link').value;if(/^https?:/.test(L))t+='\nSee the full split: '+L;
+ L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
 $('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){S={p:[],i:[],sc:0,pd:-1};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
 load();render();
