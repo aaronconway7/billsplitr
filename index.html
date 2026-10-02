@@ -117,8 +117,12 @@ var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function gbp(p){return '£'+(p/100).toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
-function load(){try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i){S=o;RO=true;return}}}catch(e){}
- try{var l=localStorage.getItem('bsplitr');if(l)S=JSON.parse(l)}catch(e){}}
+function load(){var hs=null,ls=null;
+ try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i)hs=o}}catch(e){}
+ try{var l=localStorage.getItem('bsplitr');if(l){var q=JSON.parse(l);if(q&&q.p&&q.i)ls=q}}catch(e){}
+ if(hs&&ls&&JSON.stringify(hs)===JSON.stringify(ls)){S=ls;RO=false;return}
+ if(hs){S=hs;RO=true;return}
+ if(ls)S=ls}
 function calc(){
  var n=S.p.length,own=S.p.map(function(){return 0}),un=0,sub=0;
  S.i.forEach(function(it){var c=Math.round(it.a*100);sub+=c;var s=it.s.filter(function(x){return x<n});
@@ -135,7 +139,7 @@ function render(){
   S.p.map(function(p,k){return '<button class="chip'+(it.s.indexOf(k)>-1?' on':'')+'" data-t="'+j+','+k+'">'+esc(p)+'</button>'}).join('')+
   (S.p.length>1?'<button class="chip" data-all="'+j+'">Everyone</button>':'')+'</div></div>'}).join(''):'<p class="empty">No items yet.</p>';
  $('sc').innerHTML=[0,10,12.5,15].map(function(v){return '<button class="chip'+(S.sc===v?' on':'')+'" data-sc="'+v+'"'+(RO?' disabled':'')+'>'+(v?v+'%':'None')+'</button>'}).join('')+
-  '<input id="cs" type="number" inputmode="decimal" min="0" max="100" step="0.5" placeholder="Custom %" style="max-width:140px"'+(RO?' disabled':'')+'>';
+  '<input id="cs" type="number" inputmode="decimal" min="0" max="100" step="0.5" placeholder="Custom %" style="width:140px;max-width:100%"'+(RO?' disabled':'')+'>';
  var c=calc(),h='';
  S.p.forEach(function(p,k){h+='<div class="person"><div><b>'+esc(p)+'</b><div class="mute">'+gbp(c.own[k])+' of food &amp; drink'+(S.pd===k?' · paid':'')+'</div></div><div class="amt">'+gbp(c.tot[k])+'</div></div>'});
  if(!S.p.length)h='<p class="empty">Add people and items to see the split.</p>';
