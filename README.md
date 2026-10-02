@@ -1,6 +1,10 @@
 # BillSplitr
 
 <p align="center">
+  <a href="https://app.netlify.com/projects/usebillsplitr/deploys"><img src="https://api.netlify.com/api/v1/badges/8283874a-88d8-4366-9e0f-6d543f84d2e5/deploy-status" alt="Netlify Status" /></a>
+</p>
+
+<p align="center">
   <img src="./og-image.jpg" alt="BillSplitr preview" width="1200" />
 </p>
 
