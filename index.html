@@ -175,6 +175,7 @@ function calc(){
   var d=svc-al,k=own.indexOf(Math.max.apply(null,own));if(k>=0)out[k]+=d}
  return{own:own,tot:out,sub:sub,un:un,svc:as>0?svc:0}}
 function render(){
+ if(!$('cur').options.length)renderCurOptions();
  $('add-prow').style.display=RO?'none':'flex';$('add-irow').style.display=RO?'none':'flex';
  $('cur').value=S.c;
  var cm=curMeta(),d=curDec(cm);$('ia').placeholder=cm.sym;$('ia').step=curStep(d);
