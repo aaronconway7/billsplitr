@@ -89,7 +89,7 @@ footer a:hover{text-decoration:underline}
 <main>
 <h1>Bill<span>Splitr</span></h1>
 <p class="sub">Add the bill, tap who had what, see who owes what. No sign-up.</p>
-<div class="topbar"><label for="cur">Currency</label><select id="cur" aria-label="Currency">
+<div class="topbar"><label for="cur">Currency</label><select id="cur">
 <option value="GBP">🇬🇧 GBP (£)</option>
 <option value="USD">🇺🇸 USD ($)</option>
 <option value="EUR">🇪🇺 EUR (€)</option>
@@ -123,7 +123,7 @@ footer a:hover{text-decoration:underline}
 <footer>Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer">Aaron</a> 🍔</footer>
 <div class="toast" id="toast"></div>
 <script>
-var C=[{code:'GBP',sym:'£'},{code:'USD',sym:'$'},{code:'EUR',sym:'€'},{code:'AUD',sym:'$'},{code:'CAD',sym:'$'},{code:'INR',sym:'₹'}];
+var C=[{code:'GBP',sym:'£'},{code:'USD',sym:'$'},{code:'EUR',sym:'€'},{code:'AUD',sym:'A$'},{code:'CAD',sym:'CA$'},{code:'INR',sym:'₹'}];
 var S={p:[],i:[],sc:0,pd:-1,c:'GBP'},RO=false,F={};
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
