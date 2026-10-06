@@ -172,7 +172,8 @@ function calc(){
  return{own:own,tot:out,sub:sub,un:un,svc:as>0?svc:0}}
 function render(){
  $('add-prow').style.display=RO?'none':'flex';$('add-irow').style.display=RO?'none':'flex';
- $('cur').value=curOk(S.c)?S.c:'GBP';$('ia').placeholder=curMeta().sym;
+ if(!curOk(S.c))S.c='GBP';$('cur').value=S.c;
+ var cm=curMeta();$('ia').placeholder=cm.sym;$('ia').step=cm.dec===0?'1':(cm.dec===3?'0.001':'0.01');
  $('people').innerHTML=S.p.length?S.p.map(function(p,k){return '<span class="chip on">'+esc(p)+(RO?'':' <button class="x" data-rp="'+k+'" aria-label="Remove '+esc(p)+'">×</button>')+'</span>'}).join(''):'<span class="empty">Add at least two people.</span>';
  $('items').innerHTML=S.i.length?S.i.map(function(it,j){var chips=RO?S.p.map(function(p,k){return it.s.indexOf(k)>-1?'<span class="chip on">'+esc(p)+'</span>':''}).join(''):S.p.map(function(p,k){return '<button class="chip'+(it.s.indexOf(k)>-1?' on':'')+'" data-t="'+j+','+k+'">'+esc(p)+'</button>'}).join('')+(S.p.length>1?'<button class="chip" data-all="'+j+'">Everyone</button>':'');
   if(RO&&!chips)chips='<span class="empty">Unassigned</span>';
