@@ -144,13 +144,14 @@ var C=[
  {code:'MKD',sym:'ден',flag:'🇲🇰'},{code:'BAM',sym:'KM',flag:'🇧🇦'},{code:'MDL',sym:'L',flag:'🇲🇩'},{code:'BYN',sym:'Br',flag:'🇧🇾'}
 ];
 var S={p:[],i:[],sc:0,pd:-1,c:'GBP'},RO=false;
+var CM={};C.forEach(function(cur){CM[cur.code]=cur});
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function curOk(v){return C.some(function(x){return x.code===v})}
-function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
+function curMeta(){return CM[S.c]||C[0]}
 function curLabel(c){return c.flag+' '+c.code+' ('+c.sym+')'}
 function renderCurOptions(){var sel=$('cur');sel.innerHTML='';C.forEach(function(c){var o=document.createElement('option');o.value=c.code;o.textContent=curLabel(c);sel.appendChild(o)})}
-function money(p){var m=curMeta(),d=m.dec===0||m.dec===3?m.dec:2;return m.sym+(p/100).toFixed(d)}
+function money(p){var m=curMeta(),d=m.dec!=null?m.dec:2;return m.sym+(p/100).toFixed(d)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
  try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i){o.c=o.c||'GBP';if(!curOk(o.c))o.c='GBP';hs=o}}}catch(e){}
@@ -170,7 +171,6 @@ function calc(){
   var d=svc-al,k=own.indexOf(Math.max.apply(null,own));if(k>=0)out[k]+=d}
  return{own:own,tot:out,sub:sub,un:un,svc:as>0?svc:0}}
 function render(){
- if(!$('cur').options.length)renderCurOptions();
  $('add-prow').style.display=RO?'none':'flex';$('add-irow').style.display=RO?'none':'flex';
  $('cur').value=curOk(S.c)?S.c:'GBP';$('ia').placeholder=curMeta().sym;
  $('people').innerHTML=S.p.length?S.p.map(function(p,k){return '<span class="chip on">'+esc(p)+(RO?'':' <button class="x" data-rp="'+k+'" aria-label="Remove '+esc(p)+'">×</button>')+'</span>'}).join(''):'<span class="empty">Add at least two people.</span>';
