@@ -170,6 +170,7 @@ function calc(){
   var d=svc-al,k=own.indexOf(Math.max.apply(null,own));if(k>=0)out[k]+=d}
  return{own:own,tot:out,sub:sub,un:un,svc:as>0?svc:0}}
 function render(){
+ if(!$('cur').options.length)renderCurOptions();
  $('add-prow').style.display=RO?'none':'flex';$('add-irow').style.display=RO?'none':'flex';
  $('cur').value=curOk(S.c)?S.c:'GBP';$('ia').placeholder=curMeta().sym;
  $('people').innerHTML=S.p.length?S.p.map(function(p,k){return '<span class="chip on">'+esc(p)+(RO?'':' <button class="x" data-rp="'+k+'" aria-label="Remove '+esc(p)+'">×</button>')+'</span>'}).join(''):'<span class="empty">Add at least two people.</span>';
@@ -222,7 +223,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
  L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
-$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var c=S&&curOk(S.c)?S.c:($('cur').value||'GBP');S={p:[],i:[],sc:0,pd:-1,c:c};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
+$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var curCode=S&&curOk(S.c)?S.c:($('cur').value||'GBP');S={p:[],i:[],sc:0,pd:-1,c:curCode};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
 renderCurOptions();load();render();
 </script>
 </body>
