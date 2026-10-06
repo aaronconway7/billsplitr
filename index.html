@@ -89,14 +89,7 @@ footer a:hover{text-decoration:underline}
 <main>
 <h1>Bill<span>Splitr</span></h1>
 <p class="sub">Add the bill, tap who had what, see who owes what. No sign-up.</p>
-<div class="topbar"><label for="cur">Currency</label><select id="cur">
-<option value="GBP">🇬🇧 GBP (£)</option>
-<option value="USD">🇺🇸 USD ($)</option>
-<option value="EUR">🇪🇺 EUR (€)</option>
-<option value="AUD">🇦🇺 AUD (A$)</option>
-<option value="CAD">🇨🇦 CAD (CA$)</option>
-<option value="INR">🇮🇳 INR (₹)</option>
-</select></div>
+<div class="topbar"><label for="cur">Currency</label><select id="cur"></select></div>
 
 <div class="card"><h2>1 · Who's splitting?</h2>
 <div class="row" id="add-prow"><input id="pn" placeholder="Add a name" maxlength="20" autocomplete="off"><button class="p" id="addP">Add</button></div>
@@ -123,12 +116,40 @@ footer a:hover{text-decoration:underline}
 <footer>Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer">Aaron</a> 🍔</footer>
 <div class="toast" id="toast"></div>
 <script>
-var C=[{code:'GBP',sym:'£'},{code:'USD',sym:'$'},{code:'EUR',sym:'€'},{code:'AUD',sym:'A$'},{code:'CAD',sym:'CA$'},{code:'INR',sym:'₹'}];
+var C=[
+ {code:'GBP',sym:'£',flag:'🇬🇧'},{code:'USD',sym:'$',flag:'🇺🇸'},{code:'EUR',sym:'€',flag:'🇪🇺'},{code:'AUD',sym:'A$',flag:'🇦🇺'},
+ {code:'CAD',sym:'CA$',flag:'🇨🇦'},{code:'INR',sym:'₹',flag:'🇮🇳'},{code:'NZD',sym:'NZ$',flag:'🇳🇿'},{code:'JPY',sym:'¥',flag:'🇯🇵'},
+ {code:'CNY',sym:'¥',flag:'🇨🇳'},{code:'HKD',sym:'HK$',flag:'🇭🇰'},{code:'SGD',sym:'S$',flag:'🇸🇬'},{code:'CHF',sym:'CHF',flag:'🇨🇭'},
+ {code:'SEK',sym:'kr',flag:'🇸🇪'},{code:'NOK',sym:'kr',flag:'🇳🇴'},{code:'DKK',sym:'kr',flag:'🇩🇰'},{code:'ISK',sym:'kr',flag:'🇮🇸'},
+ {code:'PLN',sym:'zł',flag:'🇵🇱'},{code:'CZK',sym:'Kč',flag:'🇨🇿'},{code:'HUF',sym:'Ft',flag:'🇭🇺'},{code:'RON',sym:'lei',flag:'🇷🇴'},
+ {code:'BGN',sym:'лв',flag:'🇧🇬'},{code:'TRY',sym:'₺',flag:'🇹🇷'},{code:'RUB',sym:'₽',flag:'🇷🇺'},{code:'UAH',sym:'₴',flag:'🇺🇦'},
+ {code:'ILS',sym:'₪',flag:'🇮🇱'},{code:'AED',sym:'د.إ',flag:'🇦🇪'},{code:'SAR',sym:'﷼',flag:'🇸🇦'},{code:'QAR',sym:'﷼',flag:'🇶🇦'},
+ {code:'KWD',sym:'KD',flag:'🇰🇼'},{code:'BHD',sym:'BD',flag:'🇧🇭'},{code:'OMR',sym:'﷼',flag:'🇴🇲'},{code:'JOD',sym:'JD',flag:'🇯🇴'},
+ {code:'EGP',sym:'E£',flag:'🇪🇬'},{code:'MAD',sym:'MAD',flag:'🇲🇦'},{code:'TND',sym:'DT',flag:'🇹🇳'},{code:'DZD',sym:'DA',flag:'🇩🇿'},
+ {code:'ZAR',sym:'R',flag:'🇿🇦'},{code:'NGN',sym:'₦',flag:'🇳🇬'},{code:'GHS',sym:'₵',flag:'🇬🇭'},{code:'KES',sym:'KSh',flag:'🇰🇪'},
+ {code:'TZS',sym:'TSh',flag:'🇹🇿'},{code:'UGX',sym:'USh',flag:'🇺🇬'},{code:'RWF',sym:'RF',flag:'🇷🇼'},{code:'ETB',sym:'Br',flag:'🇪🇹'},
+ {code:'XOF',sym:'CFA',flag:'🇸🇳'},{code:'XAF',sym:'FCFA',flag:'🇨🇲'},{code:'AOA',sym:'Kz',flag:'🇦🇴'},{code:'MZN',sym:'MT',flag:'🇲🇿'},
+ {code:'BWP',sym:'P',flag:'🇧🇼'},{code:'NAD',sym:'N$',flag:'🇳🇦'},{code:'ZMW',sym:'ZK',flag:'🇿🇲'},{code:'MWK',sym:'MK',flag:'🇲🇼'},
+ {code:'MUR',sym:'₨',flag:'🇲🇺'},{code:'SCR',sym:'₨',flag:'🇸🇨'},{code:'PKR',sym:'₨',flag:'🇵🇰'},{code:'BDT',sym:'৳',flag:'🇧🇩'},
+ {code:'LKR',sym:'Rs',flag:'🇱🇰'},{code:'NPR',sym:'₨',flag:'🇳🇵'},{code:'IDR',sym:'Rp',flag:'🇮🇩'},{code:'MYR',sym:'RM',flag:'🇲🇾'},
+ {code:'THB',sym:'฿',flag:'🇹🇭'},{code:'VND',sym:'₫',flag:'🇻🇳'},{code:'PHP',sym:'₱',flag:'🇵🇭'},{code:'KRW',sym:'₩',flag:'🇰🇷'},
+ {code:'TWD',sym:'NT$',flag:'🇹🇼'},{code:'MNT',sym:'₮',flag:'🇲🇳'},{code:'KZT',sym:'₸',flag:'🇰🇿'},{code:'UZS',sym:'soʻm',flag:'🇺🇿'},
+ {code:'GEL',sym:'₾',flag:'🇬🇪'},{code:'AMD',sym:'֏',flag:'🇦🇲'},{code:'AZN',sym:'₼',flag:'🇦🇿'},{code:'BRL',sym:'R$',flag:'🇧🇷'},
+ {code:'ARS',sym:'AR$',flag:'🇦🇷'},{code:'CLP',sym:'CL$',flag:'🇨🇱'},{code:'COP',sym:'CO$',flag:'🇨🇴'},{code:'PEN',sym:'S/',flag:'🇵🇪'},
+ {code:'UYU',sym:'$U',flag:'🇺🇾'},{code:'PYG',sym:'₲',flag:'🇵🇾'},{code:'BOB',sym:'Bs',flag:'🇧🇴'},{code:'MXN',sym:'MX$',flag:'🇲🇽'},
+ {code:'GTQ',sym:'Q',flag:'🇬🇹'},{code:'HNL',sym:'L',flag:'🇭🇳'},{code:'NIO',sym:'C$',flag:'🇳🇮'},{code:'CRC',sym:'₡',flag:'🇨🇷'},
+ {code:'PAB',sym:'B/.',flag:'🇵🇦'},{code:'DOP',sym:'RD$',flag:'🇩🇴'},{code:'JMD',sym:'J$',flag:'🇯🇲'},{code:'TTD',sym:'TT$',flag:'🇹🇹'},
+ {code:'BBD',sym:'Bds$',flag:'🇧🇧'},{code:'BSD',sym:'B$',flag:'🇧🇸'},{code:'BZD',sym:'BZ$',flag:'🇧🇿'},{code:'GYD',sym:'G$',flag:'🇬🇾'},
+ {code:'SRD',sym:'SR$',flag:'🇸🇷'},{code:'XCD',sym:'EC$',flag:'🇦🇬'},{code:'ALL',sym:'L',flag:'🇦🇱'},{code:'RSD',sym:'RSD',flag:'🇷🇸'},
+ {code:'MKD',sym:'ден',flag:'🇲🇰'},{code:'BAM',sym:'KM',flag:'🇧🇦'},{code:'MDL',sym:'L',flag:'🇲🇩'},{code:'BYN',sym:'Br',flag:'🇧🇾'}
+];
 var S={p:[],i:[],sc:0,pd:-1,c:'GBP'},RO=false;
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
+function curLabel(c){return c.flag+' '+c.code+' ('+c.sym+')'}
+function renderCurOptions(){$('cur').innerHTML=C.map(function(c){return '<option value="'+c.code+'">'+curLabel(c)+'</option>'}).join('')}
 function money(p){var m=curMeta();return m.sym+(p/100).toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
@@ -202,7 +223,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
 $('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){S={p:[],i:[],sc:0,pd:-1,c:S.c||'GBP'};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
-load();render();
+renderCurOptions();load();render();
 </script>
 </body>
 </html>
