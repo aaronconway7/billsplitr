@@ -116,10 +116,30 @@ var S={p:[],i:[],sc:0,pd:-1},RO=false;
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function gbp(p){return '£'+(p/100).toFixed(2)}
-function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
+function pack(s){return[s.p,s.i.map(function(it){return[it.n,it.a,it.s]}),s.sc,s.pd]}
+function norm(o){
+ if(Array.isArray(o)){
+  if(!Array.isArray(o[0])||!Array.isArray(o[1]))return null;
+  return{
+  p:o[0],
+  i:o[1].map(function(it){return{n:it&&it[0]||'',a:it&&it[1]||0,s:Array.isArray(it&&it[2])?it[2]:[]}}),
+  sc:typeof o[2]==='number'?o[2]:0,
+  pd:typeof o[3]==='number'?o[3]:-1
+ }}
+ if(o&&Array.isArray(o.p)&&Array.isArray(o.i))return{
+  p:o.p,
+  i:o.i.map(function(it){return{n:it&&it.n||'',a:it&&it.a||0,s:Array.isArray(it&&it.s)?it.s:[]}}),
+  sc:typeof o.sc==='number'?o.sc:0,
+  pd:typeof o.pd==='number'?o.pd:-1
+ };
+ return null
+}
+function b64e(s){var b=new TextEncoder().encode(s),a=new Array(b.length);for(var i=0;i<b.length;i++)a[i]=String.fromCharCode(b[i]);return btoa(a.join('')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function b64d(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var x=atob(s),b=new Uint8Array(x.length);for(var i=0;i<x.length;i++)b[i]=x.charCodeAt(i);return new TextDecoder().decode(b)}
+function enc(){try{return b64e(JSON.stringify(pack(S)))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
- try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i)hs=o}}catch(e){}
- try{var l=localStorage.getItem('bsplitr');if(l){var q=JSON.parse(l);if(q&&q.p&&q.i)ls=q}}catch(e){}
+ try{var h=location.hash.slice(1);if(h){var o=norm(JSON.parse(b64d(h)));if(o)hs=o}}catch(e){}
+ try{var l=localStorage.getItem('bsplitr');if(l){var q=norm(JSON.parse(l));if(q)ls=q}}catch(e){}
  if(hs&&ls&&JSON.stringify(hs)===JSON.stringify(ls)){S=ls;RO=false;return}
  if(hs){S=hs;RO=true;return}
  if(ls)S=ls}
