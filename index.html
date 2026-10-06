@@ -139,7 +139,7 @@ function b64d(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='='
 function enc(){try{return b64e(JSON.stringify(pack(S)))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
  try{var h=location.hash.slice(1);if(h){var o=norm(JSON.parse(b64d(h)));if(o)hs=o}}catch(e){}
- try{var l=localStorage.getItem('bsplitr');if(l){var q=JSON.parse(l);if(q&&q.p&&q.i)ls=q}}catch(e){}
+ try{var l=localStorage.getItem('bsplitr');if(l){var q=norm(JSON.parse(l));if(q)ls=q}}catch(e){}
  if(hs&&ls&&JSON.stringify(hs)===JSON.stringify(ls)){S=ls;RO=false;return}
  if(hs){S=hs;RO=true;return}
  if(ls)S=ls}
