@@ -93,8 +93,8 @@ footer a:hover{text-decoration:underline}
 <option value="GBP">🇬🇧 GBP (£)</option>
 <option value="USD">🇺🇸 USD ($)</option>
 <option value="EUR">🇪🇺 EUR (€)</option>
-<option value="AUD">🇦🇺 AUD ($)</option>
-<option value="CAD">🇨🇦 CAD ($)</option>
+<option value="AUD">🇦🇺 AUD (A$)</option>
+<option value="CAD">🇨🇦 CAD (CA$)</option>
 <option value="INR">🇮🇳 INR (₹)</option>
 </select></div>
 
@@ -201,7 +201,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
  L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
-$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){S={p:[],i:[],sc:0,pd:-1};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
+$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){S={p:[],i:[],sc:0,pd:-1,c:S.c||'GBP'};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
 load();render();
 </script>
 </body>
