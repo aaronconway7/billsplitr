@@ -129,7 +129,7 @@ var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
-function gbp(p){var m=curMeta(),v=p/100;
+function money(p){var m=curMeta(),v=p/100;
  if(window.Intl&&Intl.NumberFormat){if(!F[m.code])F[m.code]=new Intl.NumberFormat(undefined,{style:'currency',currency:m.code});return F[m.code].format(v)}
  return m.sym+v.toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
@@ -156,16 +156,16 @@ function render(){
  $('people').innerHTML=S.p.length?S.p.map(function(p,k){return '<span class="chip on">'+esc(p)+(RO?'':' <button class="x" data-rp="'+k+'" aria-label="Remove '+esc(p)+'">×</button>')+'</span>'}).join(''):'<span class="empty">Add at least two people.</span>';
  $('items').innerHTML=S.i.length?S.i.map(function(it,j){var chips=RO?S.p.map(function(p,k){return it.s.indexOf(k)>-1?'<span class="chip on">'+esc(p)+'</span>':''}).join(''):S.p.map(function(p,k){return '<button class="chip'+(it.s.indexOf(k)>-1?' on':'')+'" data-t="'+j+','+k+'">'+esc(p)+'</button>'}).join('')+(S.p.length>1?'<button class="chip" data-all="'+j+'">Everyone</button>':'');
   if(RO&&!chips)chips='<span class="empty">Unassigned</span>';
-  return '<div class="item"><div class="ih"><b>'+esc(it.n)+'</b><span><span class="amt" style="font-size:16px">'+gbp(Math.round(it.a*100))+'</span>'+(RO?'':'<button class="x" data-ri="'+j+'" aria-label="Remove item">×</button>')+'</span></div><div class="chips" style="margin-top:8px">'+chips+'</div></div>'}).join(''):'<p class="empty">No items yet.</p>';
+  return '<div class="item"><div class="ih"><b>'+esc(it.n)+'</b><span><span class="amt" style="font-size:16px">'+money(Math.round(it.a*100))+'</span>'+(RO?'':'<button class="x" data-ri="'+j+'" aria-label="Remove item">×</button>')+'</span></div><div class="chips" style="margin-top:8px">'+chips+'</div></div>'}).join(''):'<p class="empty">No items yet.</p>';
  $('sc').innerHTML=RO?'<span class="chip on">'+(S.sc?S.sc+'%':'None')+'</span>':[0,10,12.5,15].map(function(v){return '<button class="chip'+(S.sc===v?' on':'')+'" data-sc="'+v+'">'+(v?v+'%':'None')+'</button>'}).join('')+
   '<input id="cs" type="number" inputmode="decimal" min="0" max="100" step="0.5" placeholder="Custom %" style="width:140px;max-width:100%">';
  var c=calc(),h='';
- S.p.forEach(function(p,k){h+='<div class="person"><div><b>'+esc(p)+'</b><div class="mute">'+gbp(c.own[k])+' of food &amp; drink'+(S.pd===k?' · paid':'')+'</div></div><div class="amt">'+gbp(c.tot[k])+'</div></div>'});
+ S.p.forEach(function(p,k){h+='<div class="person"><div><b>'+esc(p)+'</b><div class="mute">'+money(c.own[k])+' of food &amp; drink'+(S.pd===k?' · paid':'')+'</div></div><div class="amt">'+money(c.tot[k])+'</div></div>'});
  if(!S.p.length)h='<p class="empty">Add people and items to see the split.</p>';
  var grand=c.sub-c.un+c.svc+c.un;
- h+='<div class="tot" style="margin-top:8px"><span>Items</span><span>'+gbp(c.sub)+'</span></div>'+(c.svc?'<div class="tot"><span>Service / tip ('+S.sc+'%)</span><span>'+gbp(c.svc)+'</span></div>':'')+'<div class="tot g"><span>Total</span><span>'+gbp(c.sub+c.svc)+'</span></div>';
- if(c.un)h+='<div class="warn">'+gbp(c.un)+' of items aren\'t assigned to anyone yet.</div>';
- if(S.pd>-1&&S.p[S.pd]){var ln=[];S.p.forEach(function(p,k){if(k!==S.pd&&c.tot[k])ln.push(esc(p)+' pays '+esc(S.p[S.pd])+' '+gbp(c.tot[k]))});if(ln.length)h+='<div class="mute" style="margin-top:10px">'+ln.join('<br>')+'</div>'}
+ h+='<div class="tot" style="margin-top:8px"><span>Items</span><span>'+money(c.sub)+'</span></div>'+(c.svc?'<div class="tot"><span>Service / tip ('+S.sc+'%)</span><span>'+money(c.svc)+'</span></div>':'')+'<div class="tot g"><span>Total</span><span>'+money(c.sub+c.svc)+'</span></div>';
+ if(c.un)h+='<div class="warn">'+money(c.un)+' of items aren\'t assigned to anyone yet.</div>';
+ if(S.pd>-1&&S.p[S.pd]){var ln=[];S.p.forEach(function(p,k){if(k!==S.pd&&c.tot[k])ln.push(esc(p)+' pays '+esc(S.p[S.pd])+' '+money(c.tot[k]))});if(ln.length)h+='<div class="mute" style="margin-top:10px">'+ln.join('<br>')+'</div>'}
  $('res').innerHTML=h;
  $('payer').innerHTML=RO?(S.pd>-1&&S.p[S.pd]?'<span class="chip on">'+esc(S.p[S.pd])+'</span>':'—'):S.p.map(function(p,k){return '<button class="chip'+(S.pd===k?' on':'')+'" data-pd="'+k+'">'+esc(p)+'</button>'}).join('')||'—';
  $('pn').disabled=RO;$('addP').disabled=RO;$('in').disabled=RO;$('ia').disabled=RO;$('addI').disabled=RO;
@@ -191,14 +191,14 @@ document.addEventListener('click',function(e){var b=e.target.closest('button');i
  else if(d.pd!==undefined){S.pd=S.pd===+d.pd?-1:+d.pd;render()}});
 document.addEventListener('change',function(e){
  if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}
- else if(e.target.id==='cur'){if(curOk(e.target.value)){S.c=e.target.value;render()}}
+ else if(e.target.id==='cur'){if(curOk(e.target.value)){S.c=e.target.value;try{if(!RO)localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}render()}}
 });
 $('cp').onclick=function(){var v=$('link').value;if(!v)return toast('Link unavailable');copy(v,'Link copied')};
 $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
- var t='🧾 *Bill split*\nTotal: *'+gbp(c.sub+c.svc)+'*'+(S.sc?' (incl. '+S.sc+'% service)':'')+'\n\n';
+ var t='🧾 *Bill split*\nTotal: *'+money(c.sub+c.svc)+'*'+(S.sc?' (incl. '+S.sc+'% service)':'')+'\n\n';
  t+=pd?'💸 *Pay '+pd+':*\n':'*Who owes what:*\n';
- S.p.forEach(function(p,k){if(k!==S.pd)t+='• '+p+' – '+gbp(c.tot[k])+'\n'});
- if(c.un)t+='\n⚠️ '+gbp(c.un)+' not yet assigned\n';
+ S.p.forEach(function(p,k){if(k!==S.pd)t+='• '+p+' – '+money(c.tot[k])+'\n'});
+ if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
  L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
 $('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){S={p:[],i:[],sc:0,pd:-1};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
