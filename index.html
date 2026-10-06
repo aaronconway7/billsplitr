@@ -150,6 +150,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;
 function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){return CM[S.c]||C[0]}
 function curDec(c){return c.dec!=null?c.dec:2}
+function curStep(d){return d<=0?'1':(1/Math.pow(10,d)).toFixed(d)}
 function curLabel(c){return c.flag+' '+c.code+' ('+c.sym+')'}
 function renderCurOptions(){var sel=$('cur');sel.innerHTML='';C.forEach(function(c){var o=document.createElement('option');o.value=c.code;o.textContent=curLabel(c);sel.appendChild(o)})}
 function money(p){var m=curMeta(),d=curDec(m);return m.sym+(p/100).toFixed(d)}
@@ -174,7 +175,7 @@ function calc(){
 function render(){
  $('add-prow').style.display=RO?'none':'flex';$('add-irow').style.display=RO?'none':'flex';
  if(!curOk(S.c))S.c='GBP';$('cur').value=S.c;
- var cm=curMeta(),d=curDec(cm);$('ia').placeholder=cm.sym;$('ia').step=d===0?'1':(d===3?'0.001':'0.01');
+ var cm=curMeta(),d=curDec(cm);$('ia').placeholder=cm.sym;$('ia').step=curStep(d);
  $('people').innerHTML=S.p.length?S.p.map(function(p,k){return '<span class="chip on">'+esc(p)+(RO?'':' <button class="x" data-rp="'+k+'" aria-label="Remove '+esc(p)+'">×</button>')+'</span>'}).join(''):'<span class="empty">Add at least two people.</span>';
  $('items').innerHTML=S.i.length?S.i.map(function(it,j){var chips=RO?S.p.map(function(p,k){return it.s.indexOf(k)>-1?'<span class="chip on">'+esc(p)+'</span>':''}).join(''):S.p.map(function(p,k){return '<button class="chip'+(it.s.indexOf(k)>-1?' on':'')+'" data-t="'+j+','+k+'">'+esc(p)+'</button>'}).join('')+(S.p.length>1?'<button class="chip" data-all="'+j+'">Everyone</button>':'');
   if(RO&&!chips)chips='<span class="empty">Unassigned</span>';
