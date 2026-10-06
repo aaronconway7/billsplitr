@@ -124,17 +124,12 @@ footer a:hover{text-decoration:underline}
 <div class="toast" id="toast"></div>
 <script>
 var C=[{code:'GBP',sym:'£'},{code:'USD',sym:'$'},{code:'EUR',sym:'€'},{code:'AUD',sym:'A$'},{code:'CAD',sym:'CA$'},{code:'INR',sym:'₹'}];
-var S={p:[],i:[],sc:0,pd:-1,c:'GBP'},RO=false,fmtCache={};
+var S={p:[],i:[],sc:0,pd:-1,c:'GBP'},RO=false;
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
-function money(p){var m=curMeta(),v=p/100;
- if(window.Intl&&Intl.NumberFormat){
-  if(!fmtCache[m.code])fmtCache[m.code]=new Intl.NumberFormat(undefined,{style:'currency',currency:m.code});
-  return fmtCache[m.code].formatToParts(v).map(function(part){return part.type==='currency'?m.sym:part.value}).join('')
- }
- return m.sym+v.toFixed(2)}
+function money(p){var m=curMeta();return m.sym+(p/100).toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
  try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i){if(!curOk(o.c))o.c='GBP';hs=o}}}catch(e){}
