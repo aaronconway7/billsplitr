@@ -149,7 +149,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;
 function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
 function curLabel(c){return c.flag+' '+c.code+' ('+c.sym+')'}
-function renderCurOptions(){$('cur').innerHTML=C.map(function(c){return '<option value="'+c.code+'">'+curLabel(c)+'</option>'}).join('')}
+function renderCurOptions(){$('cur').innerHTML=C.map(function(c){return '<option value="'+esc(c.code)+'">'+esc(curLabel(c))+'</option>'}).join('')}
 function money(p){var m=curMeta();return m.sym+(p/100).toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
