@@ -165,7 +165,7 @@ function render(){
  if(S.pd>-1&&S.p[S.pd]){var ln=[];S.p.forEach(function(p,k){if(k!==S.pd&&c.tot[k])ln.push(esc(p)+' pays '+esc(S.p[S.pd])+' '+money(c.tot[k]))});if(ln.length)h+='<div class="mute" style="margin-top:10px">'+ln.join('<br>')+'</div>'}
  $('res').innerHTML=h;
  $('payer').innerHTML=RO?(S.pd>-1&&S.p[S.pd]?'<span class="chip on">'+esc(S.p[S.pd])+'</span>':'—'):S.p.map(function(p,k){return '<button class="chip'+(S.pd===k?' on':'')+'" data-pd="'+k+'">'+esc(p)+'</button>'}).join('')||'—';
- $('pn').disabled=RO;$('addP').disabled=RO;$('in').disabled=RO;$('ia').disabled=RO;$('addI').disabled=RO;
+ $('pn').disabled=RO;$('addP').disabled=RO;$('in').disabled=RO;$('ia').disabled=RO;$('addI').disabled=RO;$('cur').disabled=RO;
  var e=enc();$('link').value=location.href.split('#')[0]+'#'+e;$('link').placeholder='Share link will appear here';
  try{if(!RO)localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}
  try{if(!RO)history.replaceState(null,'','#'+e)}catch(x){}}
