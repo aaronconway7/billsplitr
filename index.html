@@ -124,13 +124,16 @@ footer a:hover{text-decoration:underline}
 <div class="toast" id="toast"></div>
 <script>
 var C=[{code:'GBP',sym:'£'},{code:'USD',sym:'$'},{code:'EUR',sym:'€'},{code:'AUD',sym:'A$'},{code:'CAD',sym:'CA$'},{code:'INR',sym:'₹'}];
-var S={p:[],i:[],sc:0,pd:-1,c:'GBP'},RO=false,F={};
+var S={p:[],i:[],sc:0,pd:-1,c:'GBP'},RO=false,fmtCache={};
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
 function money(p){var m=curMeta(),v=p/100;
- if(window.Intl&&Intl.NumberFormat){if(!F[m.code])F[m.code]=new Intl.NumberFormat(undefined,{style:'currency',currency:m.code});return F[m.code].format(v)}
+ if(window.Intl&&Intl.NumberFormat){
+  if(!fmtCache[m.code])fmtCache[m.code]=new Intl.NumberFormat(undefined,{style:'currency',currency:m.code,currencyDisplay:'code'});
+  return fmtCache[m.code].format(v).replace(m.code,m.sym)
+ }
  return m.sym+v.toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
@@ -193,7 +196,7 @@ document.addEventListener('change',function(e){
  if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}
  else if(e.target.id==='cur'){
   if(RO){e.target.value=S.c;return toast('This shared bill is read-only')}
-  if(curOk(e.target.value)){S.c=e.target.value;try{localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}render()}
+  if(curOk(e.target.value)){S.c=e.target.value;render()}
  }
 });
 $('cp').onclick=function(){var v=$('link').value;if(!v)return toast('Link unavailable');copy(v,'Link copied')};
