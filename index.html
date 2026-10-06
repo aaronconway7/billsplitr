@@ -191,7 +191,10 @@ document.addEventListener('click',function(e){var b=e.target.closest('button');i
  else if(d.pd!==undefined){S.pd=S.pd===+d.pd?-1:+d.pd;render()}});
 document.addEventListener('change',function(e){
  if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}
- else if(e.target.id==='cur'){if(curOk(e.target.value)){S.c=e.target.value;try{if(!RO)localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}render()}}
+ else if(e.target.id==='cur'){
+  if(RO){e.target.value=S.c;return toast('This shared bill is read-only')}
+  if(curOk(e.target.value)){S.c=e.target.value;try{localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}render()}
+ }
 });
 $('cp').onclick=function(){var v=$('link').value;if(!v)return toast('Link unavailable');copy(v,'Link copied')};
 $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
