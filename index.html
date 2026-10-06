@@ -149,7 +149,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;
 function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
 function curLabel(c){return c.flag+' '+c.code+' ('+c.sym+')'}
-function renderCurOptions(){$('cur').innerHTML=C.map(function(c){return '<option value="'+esc(c.code)+'">'+esc(curLabel(c))+'</option>'}).join('')}
+function renderCurOptions(){var sel=$('cur');sel.innerHTML='';C.forEach(function(c){var o=document.createElement('option');o.value=c.code;o.textContent=curLabel(c);sel.appendChild(o)})}
 function money(p){var m=curMeta();return m.sym+(p/100).toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
@@ -222,7 +222,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
  L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
-$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){S={p:[],i:[],sc:0,pd:-1,c:S.c||'GBP'};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
+$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var c=S&&curOk(S.c)?S.c:($('cur').value||'GBP');S={p:[],i:[],sc:0,pd:-1,c:c};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
 renderCurOptions();load();render();
 </script>
 </body>
