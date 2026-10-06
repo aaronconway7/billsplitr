@@ -59,7 +59,7 @@ input:focus,select:focus{outline:2px solid var(--acc);outline-offset:0}
 button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 14px}
 button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) button.p{color:#0b1f18}}
-.topbar{display:flex;align-items:flex-end;margin-left:auto}
+.topbar{display:flex;align-items:flex-end}
 .topbar select{min-width:190px}
 .row{display:flex;gap:8px}.row>input{flex:1}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
@@ -229,7 +229,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
 $('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var keptCur=curOk(S.c)?S.c:'GBP';S={p:[],i:[],sc:0,pd:-1,c:keptCur};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
-renderCurOptions();load();render();
+load();renderCurOptions();render();
 </script>
 </body>
 </html>
