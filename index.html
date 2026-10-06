@@ -118,7 +118,7 @@ footer a:hover{text-decoration:underline}
 <script>
 var C=[
  {code:'GBP',sym:'£',flag:'🇬🇧'},{code:'USD',sym:'$',flag:'🇺🇸'},{code:'EUR',sym:'€',flag:'🇪🇺'},{code:'AUD',sym:'A$',flag:'🇦🇺'},
- {code:'CAD',sym:'CA$',flag:'🇨🇦'},{code:'INR',sym:'₹',flag:'🇮🇳'}, {code:'NZD',sym:'NZ$',flag:'🇳🇿'},{code:'JPY',sym:'¥',flag:'🇯🇵',dec:0},
+ {code:'CAD',sym:'CA$',flag:'🇨🇦'},{code:'INR',sym:'₹',flag:'🇮🇳'},{code:'NZD',sym:'NZ$',flag:'🇳🇿'},{code:'JPY',sym:'¥',flag:'🇯🇵',dec:0},
  {code:'CNY',sym:'¥',flag:'🇨🇳'},{code:'HKD',sym:'HK$',flag:'🇭🇰'},{code:'SGD',sym:'S$',flag:'🇸🇬'},{code:'CHF',sym:'CHF',flag:'🇨🇭'},
  {code:'SEK',sym:'kr',flag:'🇸🇪'},{code:'NOK',sym:'kr',flag:'🇳🇴'},{code:'DKK',sym:'kr',flag:'🇩🇰'},{code:'ISK',sym:'kr',flag:'🇮🇸',dec:0},
  {code:'PLN',sym:'zł',flag:'🇵🇱'},{code:'CZK',sym:'Kč',flag:'🇨🇿'},{code:'HUF',sym:'Ft',flag:'🇭🇺'},{code:'RON',sym:'lei',flag:'🇷🇴'},
@@ -149,9 +149,10 @@ var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){return CM[S.c]||C[0]}
+function curDec(c){return c.dec!=null?c.dec:2}
 function curLabel(c){return c.flag+' '+c.code+' ('+c.sym+')'}
 function renderCurOptions(){var sel=$('cur');sel.innerHTML='';C.forEach(function(c){var o=document.createElement('option');o.value=c.code;o.textContent=curLabel(c);sel.appendChild(o)})}
-function money(p){var m=curMeta(),d=m.dec!=null?m.dec:2;return m.sym+(p/100).toFixed(d)}
+function money(p){var m=curMeta(),d=curDec(m);return m.sym+(p/100).toFixed(d)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
  try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i){o.c=o.c||'GBP';if(!curOk(o.c))o.c='GBP';hs=o}}}catch(e){}
@@ -173,7 +174,7 @@ function calc(){
 function render(){
  $('add-prow').style.display=RO?'none':'flex';$('add-irow').style.display=RO?'none':'flex';
  if(!curOk(S.c))S.c='GBP';$('cur').value=S.c;
- var cm=curMeta();$('ia').placeholder=cm.sym;$('ia').step=cm.dec===0?'1':(cm.dec===3?'0.001':'0.01');
+ var cm=curMeta(),d=curDec(cm);$('ia').placeholder=cm.sym;$('ia').step=d===0?'1':(d===3?'0.001':'0.01');
  $('people').innerHTML=S.p.length?S.p.map(function(p,k){return '<span class="chip on">'+esc(p)+(RO?'':' <button class="x" data-rp="'+k+'" aria-label="Remove '+esc(p)+'">×</button>')+'</span>'}).join(''):'<span class="empty">Add at least two people.</span>';
  $('items').innerHTML=S.i.length?S.i.map(function(it,j){var chips=RO?S.p.map(function(p,k){return it.s.indexOf(k)>-1?'<span class="chip on">'+esc(p)+'</span>':''}).join(''):S.p.map(function(p,k){return '<button class="chip'+(it.s.indexOf(k)>-1?' on':'')+'" data-t="'+j+','+k+'">'+esc(p)+'</button>'}).join('')+(S.p.length>1?'<button class="chip" data-all="'+j+'">Everyone</button>':'');
   if(RO&&!chips)chips='<span class="empty">Unassigned</span>';
