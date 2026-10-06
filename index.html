@@ -49,8 +49,9 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 main{max-width:640px;margin:0 auto;padding:20px 16px 60px}
 h1{font-size:28px;margin:0;letter-spacing:-.5px}h1 span{color:var(--acc)}
-.sub{color:var(--mute);margin:2px 0 18px}
-.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.sub{color:var(--mute);margin:2px 0 0}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.title{min-width:240px;flex:1}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 10px}
 input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
@@ -58,8 +59,7 @@ input:focus,select:focus{outline:2px solid var(--acc);outline-offset:0}
 button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 14px}
 button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) button.p{color:#0b1f18}}
-.topbar{display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:auto}
-.topbar label{color:var(--mute);font-size:12px}
+.topbar{display:flex;align-items:flex-end;margin-left:auto}
 .topbar select{min-width:190px}
 .row{display:flex;gap:8px}.row>input{flex:1}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
@@ -88,9 +88,10 @@ footer a:hover{text-decoration:underline}
 </head>
 <body>
 <main>
-<div class="head"><h1>Bill<span>Splitr</span></h1>
-<div class="topbar"><label for="cur">Currency</label><select id="cur"></select></div></div>
-<p class="sub">Add the bill, tap who had what, see who owes what. No sign-up.</p>
+<div class="head">
+<div class="title"><h1>Bill<span>Splitr</span></h1>
+<p class="sub">Add the bill, tap who had what, see who owes what. No sign-up.</p></div>
+<div class="topbar"><select id="cur" aria-label="Currency"></select></div></div>
 
 <div class="card"><h2>1 · Who's splitting?</h2>
 <div class="row" id="add-prow"><input id="pn" placeholder="Add a name" maxlength="20" autocomplete="off"><button class="p" id="addP">Add</button></div>
