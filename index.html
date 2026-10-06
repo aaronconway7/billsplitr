@@ -153,7 +153,7 @@ function curMeta(){return CM[S.c]||C[0]}
 function curDec(c){return c.dec!=null?c.dec:2}
 function curStep(d){return d<=0?'1':(1/Math.pow(10,d)).toFixed(d)}
 function curLabel(c){return c.flag+' '+c.code+' ('+c.sym+')'}
-function renderCurOptions(){var sel=$('cur');sel.innerHTML='';C.forEach(function(c){var o=document.createElement('option');o.value=c.code;o.textContent=curLabel(c);sel.appendChild(o)})}
+function renderCurOptions(){var sel=$('cur'),f=document.createDocumentFragment();sel.innerHTML='';C.forEach(function(c){var o=document.createElement('option');o.value=c.code;o.textContent=curLabel(c);f.appendChild(o)});sel.appendChild(f)}
 function money(p){var m=curMeta(),d=curDec(m);return m.sym+(p/100).toFixed(d)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
@@ -227,7 +227,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
  L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
-$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var curCode=curOk(S.c)?S.c:'GBP';S={p:[],i:[],sc:0,pd:-1,c:curCode};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
+$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var keptCur=curOk(S.c)?S.c:'GBP';S={p:[],i:[],sc:0,pd:-1,c:keptCur};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
 renderCurOptions();load();render();
 </script>
 </body>
