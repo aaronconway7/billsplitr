@@ -58,8 +58,7 @@ input:focus,select:focus{outline:2px solid var(--acc);outline-offset:0}
 button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 14px}
 button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) button.p{color:#0b1f18}}
-.topbar{display:flex}
-.topbar select{min-width:190px;padding:6px 12px;font-size:14px}
+#cur{min-width:190px;padding:6px 12px;font-size:14px}
 .row{display:flex;gap:8px}.row>input{flex:1}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .chip{border-radius:999px;padding:6px 12px;font-size:14px;background:var(--bg)}
@@ -89,7 +88,7 @@ footer a:hover{text-decoration:underline}
 <main>
 <div class="head">
 <h1>Bill<span>Splitr</span></h1>
-<div class="topbar"><select id="cur" aria-label="Currency"></select></div></div>
+<select id="cur" aria-label="Currency"></select></div>
 <p class="sub">Add the bill, tap who had what, see who owes what. No sign-up.</p>
 
 <div class="card"><h2>1 · Who's splitting?</h2>
@@ -156,7 +155,7 @@ function curLabel(c){return c.flag+' '+c.code+' ('+c.sym+')'}
 function renderCurOptions(){var sel=$('cur'),f=document.createDocumentFragment();sel.innerHTML='';C.forEach(function(c){var o=document.createElement('option');o.value=c.code;o.textContent=curLabel(c);f.appendChild(o)});sel.appendChild(f)}
 function money(p){var m=curMeta(),d=curDec(m);return m.sym+(p/100).toFixed(d)}
 function b64e(s){return btoa(encodeURIComponent(s).replace(/%([0-9A-F]{2})/g,function(_,p){return String.fromCharCode(parseInt(p,16))})).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-function b64d(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),u='',i=0,h='';for(i=0;i<b.length;i++){h=b.charCodeAt(i).toString(16);u+='%'+(h.length<2?'0'+h:h)}return decodeURIComponent(u)}
+function b64d(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),u='',h='';for(var i=0;i<b.length;i++){h=b.charCodeAt(i).toString(16);u+='%'+(h.length<2?'0'+h:h)}return decodeURIComponent(u)}
 function enc(){try{return b64e(JSON.stringify(S))}catch(e){return ''}}
 function normItem(it){var n='',a=0,s=[];
  if(Array.isArray(it)){n=it[0];a=+it[1];s=it[2]}
@@ -164,7 +163,7 @@ function normItem(it){var n='',a=0,s=[];
  return{n:n?String(n):'',a:isFinite(a)&&a>=0?a:0,s:Array.isArray(s)?s.filter(function(x){return Number.isInteger(x)&&x>=0}):[]}
 }
 function norm(o){
- if(Array.isArray(o)&&Array.isArray(o[0])&&Array.isArray(o[1])){var pda=+o[3],sca=+o[2];return{p:o[0].map(function(x){return String(x)}),i:o[1].map(normItem),sc:isFinite(sca)&&sca>=0?sca:0,pd:Number.isInteger(pda)?pda:-1,c:'GBP'}}
+ if(Array.isArray(o)&&Array.isArray(o[0])&&Array.isArray(o[1])){var pda=+o[3],sca=+o[2];return{p:o[0].map(function(x){return String(x)}),i:o[1].map(normItem),sc:isFinite(sca)&&sca>=0?sca:0,pd:Number.isInteger(pda)?pda:-1,c:typeof o[4]==='string'?o[4]:'GBP'}}
  if(o&&Array.isArray(o.p)&&Array.isArray(o.i)){var pdo=+o.pd,sco=+o.sc;return{p:o.p.map(function(x){return String(x)}),i:o.i.map(normItem),sc:isFinite(sco)&&sco>=0?sco:0,pd:Number.isInteger(pdo)?pdo:-1,c:o.c||'GBP'}}
  return null
 }
