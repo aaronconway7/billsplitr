@@ -131,8 +131,8 @@ function curOk(v){return C.some(function(x){return x.code===v})}
 function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
 function money(p){var m=curMeta(),v=p/100;
  if(window.Intl&&Intl.NumberFormat){
-  if(!fmtCache[m.code])fmtCache[m.code]=new Intl.NumberFormat(undefined,{style:'currency',currency:m.code,currencyDisplay:'code'});
-  return fmtCache[m.code].format(v).replace(m.code,m.sym)
+  if(!fmtCache[m.code])fmtCache[m.code]=new Intl.NumberFormat(undefined,{style:'currency',currency:m.code});
+  return fmtCache[m.code].formatToParts(v).map(function(part){return part.type==='currency'?m.sym:part.value}).join('')
  }
  return m.sym+v.toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
@@ -165,7 +165,6 @@ function render(){
  var c=calc(),h='';
  S.p.forEach(function(p,k){h+='<div class="person"><div><b>'+esc(p)+'</b><div class="mute">'+money(c.own[k])+' of food &amp; drink'+(S.pd===k?' · paid':'')+'</div></div><div class="amt">'+money(c.tot[k])+'</div></div>'});
  if(!S.p.length)h='<p class="empty">Add people and items to see the split.</p>';
- var grand=c.sub-c.un+c.svc+c.un;
  h+='<div class="tot" style="margin-top:8px"><span>Items</span><span>'+money(c.sub)+'</span></div>'+(c.svc?'<div class="tot"><span>Service / tip ('+S.sc+'%)</span><span>'+money(c.svc)+'</span></div>':'')+'<div class="tot g"><span>Total</span><span>'+money(c.sub+c.svc)+'</span></div>';
  if(c.un)h+='<div class="warn">'+money(c.un)+' of items aren\'t assigned to anyone yet.</div>';
  if(S.pd>-1&&S.p[S.pd]){var ln=[];S.p.forEach(function(p,k){if(k!==S.pd&&c.tot[k])ln.push(esc(p)+' pays '+esc(S.p[S.pd])+' '+money(c.tot[k]))});if(ln.length)h+='<div class="mute" style="margin-top:10px">'+ln.join('<br>')+'</div>'}
