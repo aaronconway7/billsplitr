@@ -52,11 +52,14 @@ h1{font-size:28px;margin:0;letter-spacing:-.5px}h1 span{color:var(--acc)}
 .sub{color:var(--mute);margin:2px 0 18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:0 0 10px}
-input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
-input:focus{outline:2px solid var(--acc);outline-offset:0}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+input:focus,select:focus{outline:2px solid var(--acc);outline-offset:0}
 button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 14px}
 button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]) button.p{color:#0b1f18}}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px}
+.topbar label{color:var(--mute);font-size:14px}
+.topbar select{min-width:190px}
 .row{display:flex;gap:8px}.row>input{flex:1}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .chip{border-radius:999px;padding:6px 12px;font-size:14px;background:var(--bg)}
@@ -86,13 +89,21 @@ footer a:hover{text-decoration:underline}
 <main>
 <h1>Bill<span>Splitr</span></h1>
 <p class="sub">Add the bill, tap who had what, see who owes what. No sign-up.</p>
+<div class="topbar"><label for="cur">Currency</label><select id="cur" aria-label="Currency">
+<option value="GBP">🇬🇧 GBP (£)</option>
+<option value="USD">🇺🇸 USD ($)</option>
+<option value="EUR">🇪🇺 EUR (€)</option>
+<option value="AUD">🇦🇺 AUD ($)</option>
+<option value="CAD">🇨🇦 CAD ($)</option>
+<option value="INR">🇮🇳 INR (₹)</option>
+</select></div>
 
 <div class="card"><h2>1 · Who's splitting?</h2>
 <div class="row" id="add-prow"><input id="pn" placeholder="Add a name" maxlength="20" autocomplete="off"><button class="p" id="addP">Add</button></div>
 <div class="chips" id="people"></div></div>
 
 <div class="card"><h2>2 · Items</h2>
-<div class="row" id="add-irow"><input id="in" placeholder="Item (e.g. Margherita)" maxlength="40" autocomplete="off"><input id="ia" type="number" inputmode="decimal" step="0.01" min="0" placeholder="£" style="max-width:96px"><button class="p" id="addI">Add</button></div>
+<div class="row" id="add-irow"><input id="in" placeholder="Item (e.g. Margherita)" maxlength="40" autocomplete="off"><input id="ia" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Amount" style="max-width:96px"><button class="p" id="addI">Add</button></div>
 <div id="items" style="margin-top:6px"></div></div>
 
 <div class="card"><h2>3 · Service &amp; tip</h2>
@@ -112,17 +123,23 @@ footer a:hover{text-decoration:underline}
 <footer>Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer">Aaron</a> 🍔</footer>
 <div class="toast" id="toast"></div>
 <script>
-var S={p:[],i:[],sc:0,pd:-1},RO=false;
+var C=[{code:'GBP',sym:'£'},{code:'USD',sym:'$'},{code:'EUR',sym:'€'},{code:'AUD',sym:'$'},{code:'CAD',sym:'$'},{code:'INR',sym:'₹'}];
+var S={p:[],i:[],sc:0,pd:-1,c:'GBP'},RO=false,F={};
 var $=function(i){return document.getElementById(i)};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function gbp(p){return '£'+(p/100).toFixed(2)}
+function curOk(v){return C.some(function(x){return x.code===v})}
+function curMeta(){for(var k=0;k<C.length;k++)if(C[k].code===S.c)return C[k];return C[0]}
+function gbp(p){var m=curMeta(),v=p/100;
+ if(window.Intl&&Intl.NumberFormat){if(!F[m.code])F[m.code]=new Intl.NumberFormat(undefined,{style:'currency',currency:m.code});return F[m.code].format(v)}
+ return m.sym+v.toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
- try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i)hs=o}}catch(e){}
- try{var l=localStorage.getItem('bsplitr');if(l){var q=JSON.parse(l);if(q&&q.p&&q.i)ls=q}}catch(e){}
+ try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i){if(!curOk(o.c))o.c='GBP';hs=o}}}catch(e){}
+ try{var l=localStorage.getItem('bsplitr');if(l){var q=JSON.parse(l);if(q&&q.p&&q.i){if(!curOk(q.c))q.c='GBP';ls=q}}}catch(e){}
  if(hs&&ls&&JSON.stringify(hs)===JSON.stringify(ls)){S=ls;RO=false;return}
  if(hs){S=hs;RO=true;return}
- if(ls)S=ls}
+ if(ls)S=ls;
+ if(!curOk(S.c))S.c='GBP'}
 function calc(){
  var n=S.p.length,own=S.p.map(function(){return 0}),un=0,sub=0;
  S.i.forEach(function(it){var c=Math.round(it.a*100);sub+=c;var s=it.s.filter(function(x){return x<n});
@@ -135,6 +152,7 @@ function calc(){
  return{own:own,tot:out,sub:sub,un:un,svc:as>0?svc:0}}
 function render(){
  $('add-prow').style.display=RO?'none':'flex';$('add-irow').style.display=RO?'none':'flex';
+ $('cur').value=curOk(S.c)?S.c:'GBP';$('ia').placeholder=curMeta().sym;
  $('people').innerHTML=S.p.length?S.p.map(function(p,k){return '<span class="chip on">'+esc(p)+(RO?'':' <button class="x" data-rp="'+k+'" aria-label="Remove '+esc(p)+'">×</button>')+'</span>'}).join(''):'<span class="empty">Add at least two people.</span>';
  $('items').innerHTML=S.i.length?S.i.map(function(it,j){var chips=RO?S.p.map(function(p,k){return it.s.indexOf(k)>-1?'<span class="chip on">'+esc(p)+'</span>':''}).join(''):S.p.map(function(p,k){return '<button class="chip'+(it.s.indexOf(k)>-1?' on':'')+'" data-t="'+j+','+k+'">'+esc(p)+'</button>'}).join('')+(S.p.length>1?'<button class="chip" data-all="'+j+'">Everyone</button>':'');
   if(RO&&!chips)chips='<span class="empty">Unassigned</span>';
@@ -171,7 +189,10 @@ document.addEventListener('click',function(e){var b=e.target.closest('button');i
  else if(d.all!==undefined){S.i[+d.all].s=S.p.map(function(_,k){return k});render()}
  else if(d.sc!==undefined){S.sc=parseFloat(d.sc);render()}
  else if(d.pd!==undefined){S.pd=S.pd===+d.pd?-1:+d.pd;render()}});
-document.addEventListener('change',function(e){if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}});
+document.addEventListener('change',function(e){
+ if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}
+ else if(e.target.id==='cur'){if(curOk(e.target.value)){S.c=e.target.value;render()}}
+});
 $('cp').onclick=function(){var v=$('link').value;if(!v)return toast('Link unavailable');copy(v,'Link copied')};
 $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  var t='🧾 *Bill split*\nTotal: *'+gbp(c.sub+c.svc)+'*'+(S.sc?' (incl. '+S.sc+'% service)':'')+'\n\n';
