@@ -153,8 +153,8 @@ function renderCurOptions(){var sel=$('cur');sel.innerHTML='';C.forEach(function
 function money(p){var m=curMeta();return m.sym+(p/100).toFixed(2)}
 function enc(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))))}catch(e){return ''}}
 function load(){var hs=null,ls=null;
- try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i){if(!curOk(o.c))o.c='GBP';hs=o}}}catch(e){}
- try{var l=localStorage.getItem('bsplitr');if(l){var q=JSON.parse(l);if(q&&q.p&&q.i){if(!curOk(q.c))q.c='GBP';ls=q}}}catch(e){}
+ try{var h=location.hash.slice(1);if(h){var o=JSON.parse(decodeURIComponent(escape(atob(h))));if(o&&o.p&&o.i){o.c=o.c||'GBP';if(!curOk(o.c))o.c='GBP';hs=o}}}catch(e){}
+ try{var l=localStorage.getItem('bsplitr');if(l){var q=JSON.parse(l);if(q&&q.p&&q.i){q.c=q.c||'GBP';if(!curOk(q.c))q.c='GBP';ls=q}}}catch(e){}
  if(hs&&ls&&JSON.stringify(hs)===JSON.stringify(ls)){S=ls;RO=false;return}
  if(hs){S=hs;RO=true;return}
  if(ls)S=ls;
@@ -223,7 +223,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
  L=$('link').value;if(L)t+='\nSee the full split: '+L;
  copy(t.trim(),'Summary copied')};
-$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var curCode=S&&curOk(S.c)?S.c:($('cur').value||'GBP');S={p:[],i:[],sc:0,pd:-1,c:curCode};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
+$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var curCode=curOk(S.c)?S.c:'GBP';S={p:[],i:[],sc:0,pd:-1,c:curCode};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
 renderCurOptions();load();render();
 </script>
 </body>
