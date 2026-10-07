@@ -40,10 +40,10 @@
 {"@context":"https://schema.org","@type":"WebApplication","name":"BillSplitr","url":"https://usebillsplitr.netlify.app/","description":"Add the bill, tap who had what, see who owes what. No sign-up.","image":"https://usebillsplitr.netlify.app/og-image.jpg","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"}}
 </script>
 <style>
-:root{--bg:#f6f5f1;--card:#fff;--ink:#1b1d21;--mute:#6b7078;--line:#e4e2dc;--acc:#0b7a5a;--accb:#d9f0e7;--warn:#b3261e;
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1b1d21;--mute:#6b7078;--line:#e4e2dc;--acc:#0b7a5a;--accb:#d9f0e7;--warn:#b3261e;--sage:#8aaa86;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161a;--card:#1e2126;--ink:#eceae4;--mute:#9a9fa8;--line:#2e3239;--acc:#4cc9a0;--accb:#1d3a31;--warn:#f2b8b5}}
-:root[data-theme="dark"]{--bg:#14161a;--card:#1e2126;--ink:#eceae4;--mute:#9a9fa8;--line:#2e3239;--acc:#4cc9a0;--accb:#1d3a31;--warn:#f2b8b5}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161a;--card:#1e2126;--ink:#eceae4;--mute:#9a9fa8;--line:#2e3239;--acc:#4cc9a0;--accb:#1d3a31;--warn:#f2b8b5;--sage:#4f6b52}}
+:root[data-theme="dark"]{--bg:#14161a;--card:#1e2126;--ink:#eceae4;--mute:#9a9fa8;--line:#2e3239;--acc:#4cc9a0;--accb:#1d3a31;--warn:#f2b8b5;--sage:#4f6b52}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -82,9 +82,31 @@ button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:60
 footer{max-width:640px;margin:0 auto;padding:0 16px 40px;text-align:center;color:var(--mute);font-size:14px}
 footer a{color:var(--acc);text-decoration:none;font-weight:600}
 footer a:hover{text-decoration:underline}
+.deco{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;opacity:.3}
+.deco svg{position:absolute;filter:drop-shadow(0 6px 14px rgba(0,0,0,.06))}
+.deco .r1{width:190px;top:56px;right:calc(50% + 370px);transform:rotate(-9deg)}
+.deco .g2{width:54px;top:47%;right:calc(50% + 470px);transform:rotate(-16deg)}
+.deco .c1{width:96px;bottom:70px;right:calc(50% + 350px);filter:none}
+.deco .g{width:78px;top:34px;left:calc(50% + 440px);transform:rotate(11deg)}
+.deco .r2{width:160px;top:36%;left:calc(50% + 350px);transform:rotate(6deg)}
+.deco .c2{width:44px;bottom:16%;left:calc(50% + 480px);filter:none}
+.deco .r3{width:110px;bottom:-24px;left:calc(50% + 380px);transform:rotate(-4deg)}
+@media(max-width:900px){.deco{opacity:.18}.deco .r1{width:120px;top:-24px;right:auto;left:-46px}.deco .g2{width:40px;top:44%;right:auto;left:-12px}.deco .c1{width:70px;bottom:-14px;right:auto;left:-18px}.deco .g{width:54px;top:140px;left:auto;right:-20px}.deco .r2{width:110px;top:58%;left:auto;right:-60px}.deco .c2,.deco .r3{display:none}}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .deco{opacity:.18}}
+:root[data-theme="dark"] .deco{opacity:.18}
+@media print{.deco{display:none}}
 </style>
 </head>
 <body>
+<div class="deco" aria-hidden="true">
+<svg class="r1" viewBox="0 0 200 150"><rect x="4" y="4" width="192" height="142" rx="14" fill="var(--card)" stroke="var(--line)"/><g fill="var(--line)"><rect x="40" y="4" width="8" height="26" rx="4"/><rect x="92" y="4" width="8" height="26" rx="4"/><rect x="144" y="4" width="8" height="26" rx="4"/><rect x="28" y="56" width="110" height="7" rx="3.5"/><rect x="28" y="78" width="140" height="7" rx="3.5"/><rect x="28" y="100" width="80" height="7" rx="3.5"/></g></svg>
+<svg class="g2" viewBox="0 0 90 100"><path d="M10 4h70a6 6 0 0 1 6 6v78l-9-7-9 7-9-7-9 7-9-7-9 7-9-7-9 7V10a6 6 0 0 1 6-6z" fill="var(--acc)"/><g fill="var(--card)" opacity=".9"><rect x="20" y="22" width="48" height="6" rx="3"/><rect x="20" y="38" width="40" height="6" rx="3"/><rect x="20" y="54" width="30" height="6" rx="3"/></g></svg>
+<svg class="c1" viewBox="0 0 100 80"><circle cx="34" cy="34" r="30" fill="var(--acc)" opacity=".75"/><circle cx="64" cy="46" r="30" fill="var(--line)" opacity=".95"/></svg>
+<svg class="g" viewBox="0 0 90 100"><path d="M10 4h70a6 6 0 0 1 6 6v78l-9-7-9 7-9-7-9 7-9-7-9 7-9-7-9 7V10a6 6 0 0 1 6-6z" fill="var(--acc)"/><g fill="var(--card)" opacity=".9"><rect x="20" y="22" width="48" height="6" rx="3"/><rect x="20" y="38" width="40" height="6" rx="3"/><rect x="20" y="54" width="30" height="6" rx="3"/></g></svg>
+<svg class="r2" viewBox="0 0 170 110"><rect x="4" y="4" width="162" height="102" rx="14" fill="var(--card)" stroke="var(--line)"/><g fill="var(--line)"><rect x="24" y="28" width="90" height="7" rx="3.5"/><rect x="24" y="50" width="122" height="7" rx="3.5"/><rect x="24" y="72" width="100" height="7" rx="3.5"/></g></svg>
+<svg class="c2" viewBox="0 0 50 50"><circle cx="25" cy="25" r="23" fill="var(--sage)" opacity=".85"/></svg>
+<svg class="r3" viewBox="0 0 120 90"><rect x="4" y="4" width="112" height="82" rx="14" fill="var(--card)" stroke="var(--line)"/><g fill="var(--line)"><rect x="24" y="26" width="60" height="7" rx="3.5"/><rect x="24" y="46" width="76" height="7" rx="3.5"/></g></svg>
+</div>
 <main>
 <div class="head">
 <h1>Bill<span>Splitr</span></h1>
