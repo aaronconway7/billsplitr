@@ -40,7 +40,7 @@ Then open http://localhost:8888. Under the plain Python server, "Copy link" fall
 ## Project files
 
 - `index.html` — app UI and logic
-- `netlify/functions/` — short-link API (`/api/shorten`) and redirect (`/<uuid>`), stored in Netlify Blobs
+- `netlify/functions/` — short-link API (`/api/shorten`) and shared-bill page (`/<uuid>`), stored in Netlify Blobs
 - `og-image.jpg` — social preview image
 - `favicon.*` and `apple-touch-icon.png` — brand assets
 - `oembed.json` — embed metadata
