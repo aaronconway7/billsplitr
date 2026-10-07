@@ -28,9 +28,19 @@ python3 -m http.server 8000
 
 Then open http://localhost:8000
 
+Short share links (`/s/abc123`) need the Netlify functions. To test them locally:
+
+```bash
+npm install
+npx netlify-cli dev
+```
+
+Then open http://localhost:8888. Under the plain Python server, "Copy link" falls back to a compressed long link.
+
 ## Project files
 
 - `index.html` — app UI and logic
+- `netlify/functions/` — short-link API (`/api/shorten`) and redirect (`/s/:id`), stored in Netlify Blobs
 - `og-image.jpg` — social preview image
 - `favicon.*` and `apple-touch-icon.png` — brand assets
 - `oembed.json` — embed metadata
