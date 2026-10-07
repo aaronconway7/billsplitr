@@ -239,13 +239,15 @@ function api(method,url,body,keep){
  return fetch(url,{method:method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep,signal:ac?ac.signal:undefined})
   .then(function(r){clearTimeout(t);if(!r.ok)throw new Error(r.status);return r.status===204?null:r.json()},function(e){clearTimeout(t);throw e})}
 // First share: store the bill on the server; this browser keeps the edit key
-function create(){if(CR)return CR;var snap=enc();
- CR=PEND.then(function(z){return api('POST','/api/bills',{d:z})}).then(function(j){
+function create(){if(CR)return CR;var snap=enc(),me;
+ me=CR=PEND.then(function(z){return api('POST','/api/bills',{d:z})}).then(function(j){
+  // A reset while this was in flight means the bill it was created for is gone
+  if(CR!==me)throw new Error('superseded');
   if(!j||!j.viewId||!j.editId)throw new Error('bad response');
   VIEW=j.viewId;EDIT=j.editId;MODE='edit';BASE=snap;
   try{localStorage.setItem('bsplitr-share',JSON.stringify({view:VIEW,edit:EDIT}))}catch(e){}
   saveKey(VIEW,EDIT);
-  render()},function(e){CR=null;throw e});
+  render()},function(e){if(CR===me)CR=null;throw e});
  return CR}
 function viewUrl(){if(VIEW)return Promise.resolve(location.origin+'/'+VIEW);if(RO)return Promise.resolve(location.href);
  return create().then(function(){return location.origin+'/'+VIEW},function(){return PEND.then(longUrl)})}
@@ -310,7 +312,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd];
 $('reset').onclick=function(){if(!confirm(MODE==='local'?'Clear everything and start a new bill?':'Start a new bill? Shared links will keep showing this one.'))return;
  var keptCur=curOk(S.c)?S.c:'GBP';if(ST)saveNow(true);S={p:[],i:[],sc:0,pd:-1,c:keptCur};
  var sh=getShare();if(sh&&sh.edit===EDIT)try{localStorage.removeItem('bsplitr-share')}catch(e){}
- MODE='local';RO=false;VIEW=EDIT=null;CR=null;$('canedit').checked=false;
+ MODE='local';RO=false;VIEW=EDIT=null;CR=null;SAVE_ERR=false;status('');$('canedit').checked=false;
  try{history.replaceState(null,'','/')}catch(e){}render()};
 window.addEventListener('pagehide',function(){if(ST)saveNow(true)});
 function boot(){
