@@ -75,7 +75,6 @@ button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:60
 .warn{color:var(--warn);font-size:14px;margin-top:8px}
 .seg{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .share{display:flex;gap:8px;flex-wrap:wrap}.share>*{flex:1}
-#link{width:100%;margin-top:8px;font-size:13px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
 .empty{color:var(--mute);font-size:14px}
@@ -109,8 +108,7 @@ footer a:hover{text-decoration:underline}
 
 <div class="card"><h2>Share</h2>
 <div class="share"><button class="p" id="cp">Copy link</button><button id="wa">Copy for WhatsApp</button></div>
-<input id="link" readonly aria-label="Shareable link">
-<p class="mute" style="margin:8px 0 0">Friends open the link and see exactly the same split. Edits need a fresh link. Works locally too.</p>
+<p class="mute" style="margin:10px 0 0">Friends open the link and see exactly the same split. Edits need a fresh link.</p>
 <button id="reset" style="margin-top:10px">Start a new bill</button></div>
 </main>
 <footer>Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer">Aaron</a> 🍔</footer>
@@ -216,24 +214,24 @@ function render(){
  $('res').innerHTML=h;
  $('payer').innerHTML=RO?(S.pd>-1&&S.p[S.pd]?'<span class="chip on">'+esc(S.p[S.pd])+'</span>':'—'):S.p.map(function(p,k){return '<button class="chip'+(S.pd===k?' on':'')+'" data-pd="'+k+'">'+esc(p)+'</button>'}).join('')||'—';
  $('pn').disabled=RO;$('addP').disabled=RO;$('in').disabled=RO;$('ia').disabled=RO;$('addI').disabled=RO;$('cur').disabled=RO;
- $('link').placeholder='Share link will appear here';setHash(enc());
+ setHash(enc());
  var seq=++RS;PEND=encZ().then(function(z){if(seq===RS)setHash(z);return z});
  try{if(!RO)localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}}
 var RS=0,CUR='',PEND=null,SH={};
 function longUrl(h){return location.href.split('#')[0]+'#'+h}
-function setHash(h){CUR=h;$('link').value=SH[h]||longUrl(h);try{if(!RO)history.replaceState(null,'','#'+h)}catch(x){}}
+function setHash(h){CUR=h;try{if(!RO)history.replaceState(null,'','#'+h)}catch(x){}}
 // Ask the Netlify function for a short /s/:id link; fall back to the long link on any failure
 function shorten(h){if(SH[h])return Promise.resolve(SH[h]);var long=longUrl(h);if(!h||!window.fetch)return Promise.resolve(long);
  var ac=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ac)ac.abort()},3000);
  return fetch('/api/shorten',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({d:h}),signal:ac?ac.signal:undefined})
   .then(function(r){if(!r.ok)throw 0;return r.json()})
-  .then(function(j){clearTimeout(t);if(!j||!j.url)throw 0;SH[h]=j.url;if(h===CUR)$('link').value=j.url;return j.url})
+  .then(function(j){clearTimeout(t);if(!j||!j.url)throw 0;SH[h]=j.url;return j.url})
   .then(null,function(){clearTimeout(t);return long})}
 function shareUrl(){return(PEND||Promise.resolve(CUR)).then(shorten)}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
 function copy(txt,msg){var done=function(){toast(msg)};
  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fb)}else fb();
- function fb(){var l=$('link');if(txt===l.value){l.select();try{document.execCommand('copy');done()}catch(e){toast('Select and copy the link below')}}else{var a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){toast('Copy failed')}a.remove()}}}
+ function fb(){var a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){toast('Copy failed')}a.remove()}}
 // Copy text that is still being fetched; ClipboardItem with a promise keeps Safari's user-gesture permission
 function copyP(p,msg){var later=function(){p.then(function(t){copy(t,msg)})};
  if(navigator.clipboard&&navigator.clipboard.write&&window.ClipboardItem){
@@ -259,7 +257,7 @@ document.addEventListener('change',function(e){
   if(curOk(e.target.value)){S.c=e.target.value;render()}
  }
 });
-$('cp').onclick=function(){if(!$('link').value)return toast('Link unavailable');copyP(shareUrl(),'Link copied')};
+$('cp').onclick=function(){copyP(shareUrl(),'Link copied')};
 $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd];
  var t='🧾 *Bill split*\nTotal: *'+money(c.sub+c.svc)+'*'+(S.sc?' (incl. '+S.sc+'% service)':'')+'\n\n';
  t+=pd?'💸 *Pay '+pd+':*\n':'*Who owes what:*\n';
