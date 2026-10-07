@@ -215,10 +215,10 @@ function render(){
  $('payer').innerHTML=RO?(S.pd>-1&&S.p[S.pd]?'<span class="chip on">'+esc(S.p[S.pd])+'</span>':'—'):S.p.map(function(p,k){return '<button class="chip'+(S.pd===k?' on':'')+'" data-pd="'+k+'">'+esc(p)+'</button>'}).join('')||'—';
  $('pn').disabled=RO;$('addP').disabled=RO;$('in').disabled=RO;$('ia').disabled=RO;$('addI').disabled=RO;$('cur').disabled=RO;
  CUR=enc();var seq=++RS;PEND=encZ().then(function(z){if(seq===RS)CUR=z;return z});
- // Keep the address bar clean while editing (the bill lives in localStorage); shared read-only views keep their URL
- try{if(!RO&&(location.hash||window.SHARED_ID&&location.pathname!=='/'))history.replaceState(null,'','/'+location.search)}catch(x){}
+ // Keep the address bar clean while editing (the bill lives in localStorage); shared links stay put until the bill is edited
+ try{if(!RO&&(location.hash||location.pathname!=='/')&&enc()!==SRC)history.replaceState(null,'','/'+location.search)}catch(x){}
  try{if(!RO)localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}}
-var RS=0,CUR='',PEND=null,SH={};
+var RS=0,CUR='',PEND=null,SH={},SRC='';
 function longUrl(h){return location.href.split('#')[0]+'#'+h}
 // Ask the Netlify function for a short /<uuid> link; fall back to the long link on any failure
 function shorten(h){if(SH[h])return Promise.resolve(SH[h]);var long=longUrl(h);if(!h||!window.fetch)return Promise.resolve(long);
@@ -227,7 +227,7 @@ function shorten(h){if(SH[h])return Promise.resolve(SH[h]);var long=longUrl(h);i
   .then(function(r){if(!r.ok)throw 0;return r.json()})
   .then(function(j){clearTimeout(t);if(!j||!j.url)throw 0;SH[h]=j.url;return j.url})
   .then(null,function(){clearTimeout(t);return long})}
-function shareUrl(){if(RO&&window.SHARED_ID)return Promise.resolve(location.origin+'/'+SHARED_ID);return(PEND||Promise.resolve(CUR)).then(shorten)}
+function shareUrl(){if(window.SHARED_ID&&(RO||enc()===SRC))return Promise.resolve(location.origin+'/'+SHARED_ID);return(PEND||Promise.resolve(CUR)).then(shorten)}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
 function copy(txt,msg){var done=function(){toast(msg)};
  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fb)}else fb();
@@ -265,7 +265,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd];
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
  copyP(shareUrl().then(function(L){return(L?t+'\nSee the full split: '+L:t).trim()}),'Summary copied')};
 $('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var keptCur=curOk(S.c)?S.c:'GBP';S={p:[],i:[],sc:0,pd:-1,c:keptCur};render()}};
-load().then(render);
+load().then(function(){if(window.SHARED_ID)SRC=enc();render()});
 </script>
 </body>
 </html>
