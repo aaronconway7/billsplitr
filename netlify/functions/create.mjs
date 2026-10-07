@@ -7,7 +7,7 @@ export default async (req) => {
   if (!d) return new Response('Bad payload', { status: 400 });
   const viewId = crypto.randomUUID();
   const editId = crypto.randomUUID();
-  await bills().setJSON(viewId, { d, updated: Date.now() });
+  await bills().setJSON(viewId, { d, updated: Date.now(), editId });
   await edits().set(editId, viewId);
   return Response.json({ viewId, editId });
 };

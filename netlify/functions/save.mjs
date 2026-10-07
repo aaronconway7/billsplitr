@@ -8,7 +8,9 @@ export default async (req, context) => {
   if (!viewId) return new Response('Not found', { status: 404 });
   const d = await readBill(req);
   if (!d) return new Response('Bad payload', { status: 400 });
-  await bills().setJSON(viewId, { d, updated: Date.now() });
+  // An expired bill stays gone, even if its edit entry hasn't been cleaned up yet
+  if (!await bills().get(viewId)) return new Response('Not found', { status: 404 });
+  await bills().setJSON(viewId, { d, updated: Date.now(), editId });
   return new Response(null, { status: 204 });
 };
 

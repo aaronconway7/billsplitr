@@ -8,7 +8,8 @@ export default async (req, context) => {
   const editId = id && url.pathname.startsWith('/e/') ? id : null;
   const viewId = editId ? await edits().get(editId) : id;
   const bill = viewId && await bills().get(viewId, { type: 'json' });
-  if (!bill) return Response.redirect(new URL('/', url), 302);
+  // Unknown or expired: the home page shows a message
+  if (!bill) return Response.redirect(new URL('/?expired', url), 302);
   const page = await fetch(new URL('/', url));
   if (!page.ok) return Response.redirect(new URL('/#' + bill.d, url), 302);
   const vars = { SHARED: bill.d, VIEW_ID: viewId, EDIT_ID: editId };
