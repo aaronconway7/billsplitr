@@ -108,7 +108,7 @@ footer a:hover{text-decoration:underline}
 <div style="margin-top:12px" class="mute">Who paid the bill? <span class="seg" id="payer" style="margin-top:6px"></span></div></div>
 
 <div class="card"><h2>Share</h2>
-<label class="tog" id="tog"><input type="checkbox" id="canedit"> Allow editing</label>
+<label class="tog" id="tog"><input type="checkbox" id="canedit" autocomplete="off"> Allow editing</label>
 <div class="share"><button class="p" id="cp">Copy link</button><button id="wa">Copy for WhatsApp</button></div>
 <p class="mute" id="shelp" style="margin:10px 0 0"></p>
 <p class="mute" id="sv" style="margin:4px 0 0" aria-live="polite"></p>
@@ -227,18 +227,24 @@ function render(){
 // MODE: 'local' (bill only in this browser, or a legacy #hash link), 'edit' (/e/<editId>), 'view' (/<viewId>)
 var RS=0,PEND=Promise.resolve(''),MODE='local',VIEW=null,EDIT=null,BASE='',ST=null,SQ=Promise.resolve(),CR=null,SAVE_ERR=false;
 function longUrl(h){return location.origin+'/#'+h}
-function getShare(){try{var o=JSON.parse(localStorage.getItem('bsplitr-share'));return o&&o.edit?o:null}catch(e){return null}}
+function getShare(){try{var o=JSON.parse(localStorage.getItem('bsplitr-share'));return o&&o.edit&&o.view?o:null}catch(e){return null}}
+// Edit keys this browser holds (viewId -> editId), so read-only addresses stay editable for whoever has the key
+function getKeys(){try{return JSON.parse(localStorage.getItem('bsplitr-keys'))||{}}catch(e){return{}}}
+function saveKey(v,e){var k=getKeys();k[v]=e;try{localStorage.setItem('bsplitr-keys',JSON.stringify(k))}catch(x){}}
+// The address bar always matches what Copy link would copy
+function syncUrl(){if(!VIEW)return;var u=canEdit()&&EDIT?'/e/'+EDIT:'/'+VIEW;
+ try{if(location.pathname!==u||location.hash||location.search)history.replaceState(null,'',u)}catch(e){}}
 function api(method,url,body,keep){
  var ac=window.AbortController&&!keep?new AbortController():null,t=setTimeout(function(){if(ac)ac.abort()},5000);
  return fetch(url,{method:method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep,signal:ac?ac.signal:undefined})
   .then(function(r){clearTimeout(t);if(!r.ok)throw new Error(r.status);return r.status===204?null:r.json()},function(e){clearTimeout(t);throw e})}
-// First share: store the bill on the server, then this page becomes its edit link
+// First share: store the bill on the server; this browser keeps the edit key
 function create(){if(CR)return CR;var snap=enc();
  CR=PEND.then(function(z){return api('POST','/api/bills',{d:z})}).then(function(j){
   if(!j||!j.viewId||!j.editId)throw new Error('bad response');
   VIEW=j.viewId;EDIT=j.editId;MODE='edit';BASE=snap;
   try{localStorage.setItem('bsplitr-share',JSON.stringify({view:VIEW,edit:EDIT}))}catch(e){}
-  try{history.replaceState(null,'','/e/'+EDIT)}catch(e){}
+  saveKey(VIEW,EDIT);
   render()},function(e){CR=null;throw e});
  return CR}
 function viewUrl(){if(VIEW)return Promise.resolve(location.origin+'/'+VIEW);if(RO)return Promise.resolve(location.href);
@@ -257,7 +263,7 @@ function canEdit(){return !RO&&$('canedit').checked}
 // The checkbox picks which link the copy buttons share: read-only /<viewId> or editable /e/<editId>
 function linkUrl(){return canEdit()?editUrl():viewUrl()}
 function renderShare(){
- $('tog').style.display=RO?'none':'';
+ $('tog').style.display=RO?'none':'';syncUrl();
  $('shelp').textContent=RO?'This shared bill is read-only.':canEdit()?
   'Anyone with the link can change this bill. It always shows the latest version.':
   'Friends can see the bill but not change it. It always shows the latest version.';
@@ -304,15 +310,18 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd];
 $('reset').onclick=function(){if(!confirm(MODE==='local'?'Clear everything and start a new bill?':'Start a new bill? Shared links will keep showing this one.'))return;
  var keptCur=curOk(S.c)?S.c:'GBP';if(ST)saveNow(true);S={p:[],i:[],sc:0,pd:-1,c:keptCur};
  var sh=getShare();if(sh&&sh.edit===EDIT)try{localStorage.removeItem('bsplitr-share')}catch(e){}
- MODE='local';RO=false;VIEW=EDIT=null;CR=null;
+ MODE='local';RO=false;VIEW=EDIT=null;CR=null;$('canedit').checked=false;
  try{history.replaceState(null,'','/')}catch(e){}render()};
 window.addEventListener('pagehide',function(){if(ST)saveNow(true)});
 function boot(){
- if(/[?&]missing\b/.test(location.search)){try{localStorage.removeItem('bsplitr-share');history.replaceState(null,'','/')}catch(e){}}
- if(window.SHARED){VIEW=window.VIEW_ID;EDIT=window.EDIT_ID||null;MODE=EDIT?'edit':'view';RO=!EDIT;
+ var miss=/[?&]missing=([^&]+)/.exec(location.search);
+ if(miss){var gone=getShare();try{if(gone&&(gone.view===miss[1]||gone.edit===miss[1]))localStorage.removeItem('bsplitr-share');history.replaceState(null,'','/')}catch(e){}}
+ // Opening an edit link keeps it in the address bar with Allow editing ticked; the key is remembered either way
+ $('canedit').checked=!!window.EDIT_ID;
+ if(window.SHARED){VIEW=window.VIEW_ID;EDIT=window.EDIT_ID||getKeys()[VIEW]||null;if(window.EDIT_ID)saveKey(VIEW,EDIT);MODE=EDIT?'edit':'view';RO=!EDIT;
   return dec(SHARED).then(function(t){var o=norm(JSON.parse(t));if(o){if(!curOk(o.c))o.c='GBP';S=o}}).then(null,function(){}).then(function(){BASE=enc()})}
- // Once you've shared a bill, the home page takes you back to its edit link
- var sh=getShare();if(sh&&location.pathname==='/'&&!location.hash){location.replace('/e/'+sh.edit);return new Promise(function(){})}
+ // Once you've shared a bill, the home page takes you back to it
+ var sh=getShare();if(sh&&location.pathname==='/'&&!location.hash){location.replace('/'+sh.view);return new Promise(function(){})}
  return load()}
 boot().then(render);
 </script>
