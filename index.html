@@ -74,6 +74,7 @@ button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:60
 .tot.g{font-weight:700;font-size:18px;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
 .warn{color:var(--warn);font-size:14px;margin-top:8px}
 .seg{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tog{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:14px;cursor:pointer;width:fit-content}.tog input{width:18px;height:18px;margin:0;padding:0;accent-color:var(--acc);cursor:pointer}.tog input:focus{outline:none}.tog input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .share{display:flex;gap:8px;flex-wrap:wrap}.share>*{flex:1 1 150px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
@@ -107,7 +108,8 @@ footer a:hover{text-decoration:underline}
 <div style="margin-top:12px" class="mute">Who paid the bill? <span class="seg" id="payer" style="margin-top:6px"></span></div></div>
 
 <div class="card"><h2>Share</h2>
-<div class="share"><button class="p" id="cp">Copy view link</button><button id="ce">Copy edit link</button><button id="wa">Copy for WhatsApp</button></div>
+<label class="tog" id="tog"><input type="checkbox" id="canedit"> Allow editing</label>
+<div class="share"><button class="p" id="cp">Copy link</button><button id="wa">Copy for WhatsApp</button></div>
 <p class="mute" id="shelp" style="margin:10px 0 0"></p>
 <p class="mute" id="sv" style="margin:4px 0 0" aria-live="polite"></p>
 <button id="reset" style="margin-top:10px">Start a new bill</button></div>
@@ -251,11 +253,14 @@ function saveNow(keep){clearTimeout(ST);ST=null;var snap=enc(),id=EDIT,p=PEND;if
    function(){if(id!==EDIT)return;SAVE_ERR=true;status('Couldn’t save changes. They’ll retry on your next edit.')});
  return SQ}
 function status(m){$('sv').textContent=m}
+function canEdit(){return !RO&&$('canedit').checked}
+// The checkbox picks which link the copy buttons share: read-only /<viewId> or editable /e/<editId>
+function linkUrl(){return canEdit()?editUrl():viewUrl()}
 function renderShare(){
- $('ce').style.display=RO?'none':'';
- $('cp').textContent=RO?'Copy link':'Copy view link';
- $('shelp').textContent=RO?'This shared bill is read-only.':
-  'View links are read-only. Edit links let anyone with the link change the bill. Both always show the latest version.';
+ $('tog').style.display=RO?'none':'';
+ $('shelp').textContent=RO?'This shared bill is read-only.':canEdit()?
+  'Anyone with the link can change this bill. It always shows the latest version.':
+  'Friends can see the bill but not change it. It always shows the latest version.';
  $('sv').style.display=MODE==='edit'?'':'none';if(MODE==='edit'&&!$('sv').textContent)status('All changes saved')}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
 function copy(txt,msg){var done=function(){toast(msg)};
@@ -280,20 +285,22 @@ document.addEventListener('click',function(e){var b=e.target.closest('button');i
  else if(d.sc!==undefined){S.sc=parseFloat(d.sc);render()}
  else if(d.pd!==undefined){S.pd=S.pd===+d.pd?-1:+d.pd;render()}});
 document.addEventListener('change',function(e){
- if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}
+ if(e.target.id==='canedit')renderShare();
+ else if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}
  else if(e.target.id==='cur'){
   if(RO){e.target.value=S.c;return toast('This shared bill is read-only')}
   if(curOk(e.target.value)){S.c=e.target.value;render()}
  }
 });
-$('cp').onclick=function(){copyP(viewUrl(),RO?'Link copied':'View link copied')};
-$('ce').onclick=function(){copyP(editUrl(),'Edit link copied','Couldn\u2019t create an edit link. Try again in a moment.')};
+var EDIT_FAIL='Couldn\u2019t create an edit link. Try again in a moment.';
+$('cp').onclick=function(){copyP(linkUrl(),canEdit()?'Edit link copied':'Link copied',EDIT_FAIL)};
 $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd];
  var t='🧾 *Bill split*\nTotal: *'+money(c.sub+c.svc)+'*'+(S.sc?' (incl. '+S.sc+'% service)':'')+'\n\n';
  t+=pd?'💸 *Pay '+pd+':*\n':'*Who owes what:*\n';
  S.p.forEach(function(p,k){if(k!==S.pd)t+='• '+p+' – '+money(c.tot[k])+'\n'});
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
- copyP(viewUrl().then(function(L){return(L?t+'\nSee the full split: '+L:t).trim()}),'Summary copied')};
+ var ed=canEdit();
+ copyP(linkUrl().then(function(L){return L?(t+'\n'+(ed?'View or edit the split: ':'See the full split: ')+L).trim():''}),'Summary copied',EDIT_FAIL)};
 $('reset').onclick=function(){if(!confirm(MODE==='local'?'Clear everything and start a new bill?':'Start a new bill? Shared links will keep showing this one.'))return;
  var keptCur=curOk(S.c)?S.c:'GBP';if(ST)saveNow(true);S={p:[],i:[],sc:0,pd:-1,c:keptCur};
  var sh=getShare();if(sh&&sh.edit===EDIT)try{localStorage.removeItem('bsplitr-share')}catch(e){}
