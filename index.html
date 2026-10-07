@@ -214,13 +214,13 @@ function render(){
  $('res').innerHTML=h;
  $('payer').innerHTML=RO?(S.pd>-1&&S.p[S.pd]?'<span class="chip on">'+esc(S.p[S.pd])+'</span>':'—'):S.p.map(function(p,k){return '<button class="chip'+(S.pd===k?' on':'')+'" data-pd="'+k+'">'+esc(p)+'</button>'}).join('')||'—';
  $('pn').disabled=RO;$('addP').disabled=RO;$('in').disabled=RO;$('ia').disabled=RO;$('addI').disabled=RO;$('cur').disabled=RO;
- setHash(enc());
- var seq=++RS;PEND=encZ().then(function(z){if(seq===RS)setHash(z);return z});
+ CUR=enc();var seq=++RS;PEND=encZ().then(function(z){if(seq===RS)CUR=z;return z});
+ // Keep the address bar clean while editing (the bill lives in localStorage); shared read-only views keep their hash
+ try{if(!RO&&location.hash)history.replaceState(null,'',location.pathname+location.search)}catch(x){}
  try{if(!RO)localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}}
 var RS=0,CUR='',PEND=null,SH={};
 function longUrl(h){return location.href.split('#')[0]+'#'+h}
-function setHash(h){CUR=h;try{if(!RO)history.replaceState(null,'','#'+h)}catch(x){}}
-// Ask the Netlify function for a short /s/:id link; fall back to the long link on any failure
+// Ask the Netlify function for a short /<uuid> link; fall back to the long link on any failure
 function shorten(h){if(SH[h])return Promise.resolve(SH[h]);var long=longUrl(h);if(!h||!window.fetch)return Promise.resolve(long);
  var ac=window.AbortController?new AbortController():null,t=setTimeout(function(){if(ac)ac.abort()},3000);
  return fetch('/api/shorten',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({d:h}),signal:ac?ac.signal:undefined})
@@ -264,7 +264,7 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd];
  S.p.forEach(function(p,k){if(k!==S.pd)t+='• '+p+' – '+money(c.tot[k])+'\n'});
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
  copyP(shareUrl().then(function(L){return(L?t+'\nSee the full split: '+L:t).trim()}),'Summary copied')};
-$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var keptCur=curOk(S.c)?S.c:'GBP';S={p:[],i:[],sc:0,pd:-1,c:keptCur};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
+$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var keptCur=curOk(S.c)?S.c:'GBP';S={p:[],i:[],sc:0,pd:-1,c:keptCur};render()}};
 load().then(render);
 </script>
 </body>
