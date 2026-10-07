@@ -28,7 +28,7 @@ python3 -m http.server 8000
 
 Then open http://localhost:8000
 
-Short share links (`/s/abc123`) need the Netlify functions. To test them locally:
+Short share links (`/s/<uuid>`) need the Netlify functions. To test them locally:
 
 ```bash
 npm install
