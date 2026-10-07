@@ -17,8 +17,8 @@ Live demo: https://usebillsplitr.netlify.app/
 - Split bills in seconds
 - Assign items to specific people
 - Optional service/tip percentage
-- Shareable bill links for the group
-- Works entirely in the browser
+- Short shareable links: read-only view links and edit links, always showing the latest version
+- Works in the browser, with a small Netlify backend for shared links
 
 ## Run locally
 
@@ -28,19 +28,20 @@ python3 -m http.server 8000
 
 Then open http://localhost:8000
 
-Short share links (`/<uuid>`) need the Netlify functions. To test them locally:
+Shared links (`/<uuid>` to view, `/e/<uuid>` to edit) need the Netlify functions. To test them locally:
 
 ```bash
 npm install
 npx netlify-cli dev
 ```
 
-Then open http://localhost:8888. Under the plain Python server, "Copy link" falls back to a compressed long link.
+Then open http://localhost:8888. Under the plain Python server, "Copy view link" falls back to a compressed long link (a snapshot) and edit links aren't available.
 
 ## Project files
 
 - `index.html` — app UI and logic
-- `netlify/functions/` — short-link API (`/api/shorten`) and shared-bill page (`/<uuid>`), stored in Netlify Blobs
+- `netlify/functions/` — create (`POST /api/bills`), save (`PUT /api/bills/<editId>`) and the shared-bill page (`/<viewId>`, `/e/<editId>`)
+- `netlify/lib/bills.mjs` — Netlify Blobs stores and validation shared by the functions
 - `og-image.jpg` — social preview image
 - `favicon.*` and `apple-touch-icon.png` — brand assets
 - `oembed.json` — embed metadata
