@@ -8,8 +8,7 @@ export default async (req, context) => {
   const editId = id && url.pathname.startsWith('/e/') ? id : null;
   const viewId = editId ? await edits().get(editId) : id;
   const bill = viewId && await bills().get(viewId, { type: 'json' });
-  // ?missing=<id> lets the app forget a saved bill that no longer exists (and avoids a redirect loop)
-  if (!bill) return Response.redirect(new URL(id ? '/?missing=' + id : '/', url), 302);
+  if (!bill) return Response.redirect(new URL('/', url), 302);
   const page = await fetch(new URL('/', url));
   if (!page.ok) return Response.redirect(new URL('/#' + bill.d, url), 302);
   const vars = { SHARED: bill.d, VIEW_ID: viewId, EDIT_ID: editId };

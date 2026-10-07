@@ -227,7 +227,6 @@ function render(){
 // MODE: 'local' (bill only in this browser, or a legacy #hash link), 'edit' (/e/<editId>), 'view' (/<viewId>)
 var RS=0,PEND=Promise.resolve(''),MODE='local',VIEW=null,EDIT=null,BASE='',ST=null,SQ=Promise.resolve(),CR=null,SAVE_ERR=false;
 function longUrl(h){return location.origin+'/#'+h}
-function getShare(){try{var o=JSON.parse(localStorage.getItem('bsplitr-share'));return o&&o.edit&&o.view?o:null}catch(e){return null}}
 // Edit keys this browser holds (viewId -> editId), so read-only addresses stay editable for whoever has the key
 function getKeys(){try{return JSON.parse(localStorage.getItem('bsplitr-keys'))||{}}catch(e){return{}}}
 function saveKey(v,e){var k=getKeys();k[v]=e;try{localStorage.setItem('bsplitr-keys',JSON.stringify(k))}catch(x){}}
@@ -245,7 +244,8 @@ function create(){if(CR)return CR;var snap=enc(),me;
   if(CR!==me)throw new Error('superseded');
   if(!j||!j.viewId||!j.editId)throw new Error('bad response');
   VIEW=j.viewId;EDIT=j.editId;MODE='edit';BASE=snap;
-  try{localStorage.setItem('bsplitr-share',JSON.stringify({view:VIEW,edit:EDIT}))}catch(e){}
+  // The bill now lives at its link, so the home page goes back to a fresh bill
+  try{localStorage.removeItem('bsplitr')}catch(e){}
   saveKey(VIEW,EDIT);
   render()},function(e){if(CR===me)CR=null;throw e});
  return CR}
@@ -311,19 +311,15 @@ $('wa').onclick=function(){var c=calc(),pd=S.p[S.pd];
  copyP(linkUrl().then(function(L){return L?(t+'\n'+(ed?'View or edit the split: ':'See the full split: ')+L).trim():''}),'Summary copied',EDIT_FAIL)};
 $('reset').onclick=function(){if(!confirm(MODE==='local'?'Clear everything and start a new bill?':'Start a new bill? Shared links will keep showing this one.'))return;
  var keptCur=curOk(S.c)?S.c:'GBP';if(ST)saveNow(true);S={p:[],i:[],sc:0,pd:-1,c:keptCur};
- var sh=getShare();if(sh&&sh.edit===EDIT)try{localStorage.removeItem('bsplitr-share')}catch(e){}
  MODE='local';RO=false;VIEW=EDIT=null;CR=null;SAVE_ERR=false;status('');$('canedit').checked=false;
  try{history.replaceState(null,'','/')}catch(e){}render()};
 window.addEventListener('pagehide',function(){if(ST)saveNow(true)});
 function boot(){
- var miss=/[?&]missing=([^&]+)/.exec(location.search);
- if(miss){var gone=getShare();try{if(gone&&(gone.view===miss[1]||gone.edit===miss[1]))localStorage.removeItem('bsplitr-share');history.replaceState(null,'','/')}catch(e){}}
+ try{localStorage.removeItem('bsplitr-share')}catch(e){} // no longer used
  // Opening an edit link keeps it in the address bar with Allow editing ticked; the key is remembered either way
  $('canedit').checked=!!window.EDIT_ID;
  if(window.SHARED){VIEW=window.VIEW_ID;EDIT=window.EDIT_ID||getKeys()[VIEW]||null;if(window.EDIT_ID)saveKey(VIEW,EDIT);MODE=EDIT?'edit':'view';RO=!EDIT;
   return dec(SHARED).then(function(t){var o=norm(JSON.parse(t));if(o){if(!curOk(o.c))o.c='GBP';S=o}}).then(null,function(){}).then(function(){BASE=enc()})}
- // Once you've shared a bill, the home page takes you back to it
- var sh=getShare();if(sh&&location.pathname==='/'&&!location.hash){location.replace('/'+sh.view);return new Promise(function(){})}
  return load()}
 boot().then(render);
 </script>
