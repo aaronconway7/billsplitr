@@ -74,8 +74,8 @@ button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:60
 .tot.g{font-weight:700;font-size:18px;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
 .warn{color:var(--warn);font-size:14px;margin-top:8px}
 .seg{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.share{display:flex;gap:8px;flex-wrap:wrap}.share>*{flex:1}
-#link{width:100%;margin-top:8px;font-size:13px}
+.tog{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:14px;cursor:pointer;width:fit-content}.tog input{width:18px;height:18px;margin:0;padding:0;accent-color:var(--acc);cursor:pointer}.tog input:focus{outline:none}.tog input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.share{display:flex;gap:8px;flex-wrap:wrap}.share>*{flex:1 1 150px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
 .empty{color:var(--mute);font-size:14px}
@@ -108,9 +108,10 @@ footer a:hover{text-decoration:underline}
 <div style="margin-top:12px" class="mute">Who paid the bill? <span class="seg" id="payer" style="margin-top:6px"></span></div></div>
 
 <div class="card"><h2>Share</h2>
+<label class="tog" id="tog"><input type="checkbox" id="canedit" autocomplete="off"> Allow editing</label>
 <div class="share"><button class="p" id="cp">Copy link</button><button id="wa">Copy for WhatsApp</button></div>
-<input id="link" readonly aria-label="Shareable link">
-<p class="mute" style="margin:8px 0 0">The link contains the whole bill, so friends open it and see exactly the same split. Edits need a fresh link. Works locally too.</p>
+<p class="mute" id="shelp" style="margin:10px 0 0"></p>
+<p class="mute" id="sv" style="margin:4px 0 0" aria-live="polite"></p>
 <button id="reset" style="margin-top:10px">Start a new bill</button></div>
 </main>
 <footer>Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer">Aaron</a> 🍔</footer>
@@ -156,7 +157,16 @@ function renderCurOptions(){var sel=$('cur'),f=document.createDocumentFragment()
 function money(p){var m=curMeta(),d=curDec(m);return m.sym+(p/100).toFixed(d)}
 function b64e(s){return btoa(encodeURIComponent(s).replace(/%([0-9A-F]{2})/g,function(_,p){return String.fromCharCode(parseInt(p,16))})).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function b64d(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),u='',h='';for(var i=0;i<b.length;i++){h=b.charCodeAt(i).toString(16);u+='%'+(h.length<2?'0'+h:h)}return decodeURIComponent(u)}
-function enc(){try{return b64e(JSON.stringify(S))}catch(e){return ''}}
+function pack(){return JSON.stringify([S.p,S.i.map(function(it){return[it.n,it.a,it.s]}),S.sc,S.pd,S.c])}
+function enc(){try{return b64e(pack())}catch(e){return ''}}
+function u8e(u){var s='';for(var i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function u8d(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+// Compressed hashes are prefixed with 'z'; legacy base64 JSON always starts with 'e' or 'W'
+function encZ(){var p=enc();if(!window.CompressionStream||!window.Response)return Promise.resolve(p);
+ try{var st=new Blob([new TextEncoder().encode(pack())]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  return new Response(st).arrayBuffer().then(function(b){var z='z'+u8e(new Uint8Array(b));return z.length<p.length?z:p},function(){return p})}catch(e){return Promise.resolve(p)}}
+function dec(h){if(h.charAt(0)!=='z')return Promise.resolve(b64d(h));
+ try{var st=new Blob([u8d(h.slice(1))]).stream().pipeThrough(new DecompressionStream('deflate-raw'));return new Response(st).text()}catch(e){return Promise.reject(e)}}
 function normItem(it){var n='',a=0,s=[];
  if(Array.isArray(it)){n=it[0];a=+it[1];s=it[2]}
  else if(it&&typeof it==='object'){n=it.n;a=+it.a;s=it.s}
@@ -167,8 +177,11 @@ function norm(o){
  if(o&&Array.isArray(o.p)&&Array.isArray(o.i)){var pdo=+o.pd,sco=+o.sc;return{p:o.p.map(function(x){return String(x)}),i:o.i.map(normItem),sc:isFinite(sco)&&sco>=0?sco:0,pd:Number.isInteger(pdo)?pdo:-1,c:o.c||'GBP'}}
  return null
 }
-function load(){var hs=null,ls=null;
- try{var h=location.hash.slice(1);if(h){var o=norm(JSON.parse(b64d(h)));if(o){o.c=o.c||'GBP';if(!curOk(o.c))o.c='GBP';hs=o}}}catch(e){}
+function load(){var h=window.SHARED||location.hash.slice(1),p;
+ try{p=h?dec(h):Promise.resolve('')}catch(e){p=Promise.resolve('')}
+ return p.then(null,function(){return ''}).then(loadFrom)}
+function loadFrom(txt){var hs=null,ls=null;
+ try{if(txt){var o=norm(JSON.parse(txt));if(o){o.c=o.c||'GBP';if(!curOk(o.c))o.c='GBP';hs=o}}}catch(e){}
  try{var l=localStorage.getItem('bsplitr');if(l){var q=norm(JSON.parse(l));if(q){q.c=q.c||'GBP';if(!curOk(q.c))q.c='GBP';ls=q}}}catch(e){}
  if(hs&&ls&&JSON.stringify(hs)===JSON.stringify(ls)){S=ls;RO=false;return}
  if(hs){S=hs;RO=true;return}
@@ -204,13 +217,68 @@ function render(){
  $('res').innerHTML=h;
  $('payer').innerHTML=RO?(S.pd>-1&&S.p[S.pd]?'<span class="chip on">'+esc(S.p[S.pd])+'</span>':'—'):S.p.map(function(p,k){return '<button class="chip'+(S.pd===k?' on':'')+'" data-pd="'+k+'">'+esc(p)+'</button>'}).join('')||'—';
  $('pn').disabled=RO;$('addP').disabled=RO;$('in').disabled=RO;$('ia').disabled=RO;$('addI').disabled=RO;$('cur').disabled=RO;
- var e=enc();$('link').value=location.href.split('#')[0]+'#'+e;$('link').placeholder='Share link will appear here';
- try{if(!RO)localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}
- try{if(!RO)history.replaceState(null,'','#'+e)}catch(x){}}
+ var seq=++RS;PEND=encZ().then(function(z){return seq===RS?z:PEND});
+ renderShare();
+ if(MODE==='edit')scheduleSave();
+ if(MODE==='local'&&!RO){
+  // Keep the address bar clean while editing a local bill (it lives in localStorage)
+  try{if(location.hash)history.replaceState(null,'','/')}catch(x){}
+  try{localStorage.setItem('bsplitr',JSON.stringify(S))}catch(x){}}}
+// MODE: 'local' (bill only in this browser, or a legacy #hash link), 'edit' (/e/<editId>), 'view' (/<viewId>)
+var RS=0,PEND=Promise.resolve(''),MODE='local',VIEW=null,EDIT=null,BASE='',ST=null,SQ=Promise.resolve(),CR=null,SAVE_ERR=false;
+function longUrl(h){return location.origin+'/#'+h}
+// Edit keys this browser holds (viewId -> editId), so read-only addresses stay editable for whoever has the key
+function getKeys(){try{return JSON.parse(localStorage.getItem('bsplitr-keys'))||{}}catch(e){return{}}}
+function saveKey(v,e){var k=getKeys();k[v]=e;try{localStorage.setItem('bsplitr-keys',JSON.stringify(k))}catch(x){}}
+// The address bar always matches what Copy link would copy
+function syncUrl(){if(!VIEW)return;var u=canEdit()&&EDIT?'/e/'+EDIT:'/'+VIEW;
+ try{if(location.pathname!==u||location.hash||location.search)history.replaceState(null,'',u)}catch(e){}}
+function api(method,url,body,keep){
+ var ac=window.AbortController&&!keep?new AbortController():null,t=setTimeout(function(){if(ac)ac.abort()},5000);
+ return fetch(url,{method:method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body),keepalive:!!keep,signal:ac?ac.signal:undefined})
+  .then(function(r){clearTimeout(t);if(!r.ok)throw new Error(r.status);return r.status===204?null:r.json()},function(e){clearTimeout(t);throw e})}
+// First share: store the bill on the server; this browser keeps the edit key
+function create(){if(CR)return CR;var snap=enc(),me;
+ me=CR=PEND.then(function(z){return api('POST','/api/bills',{d:z})}).then(function(j){
+  // A reset while this was in flight means the bill it was created for is gone
+  if(CR!==me)throw new Error('superseded');
+  if(!j||!j.viewId||!j.editId)throw new Error('bad response');
+  VIEW=j.viewId;EDIT=j.editId;MODE='edit';BASE=snap;
+  // The bill now lives at its link, so the home page goes back to a fresh bill
+  try{localStorage.removeItem('bsplitr')}catch(e){}
+  saveKey(VIEW,EDIT);
+  render()},function(e){if(CR===me)CR=null;throw e});
+ return CR}
+function viewUrl(){if(VIEW)return Promise.resolve(location.origin+'/'+VIEW);if(RO)return Promise.resolve(location.href);
+ return create().then(function(){return location.origin+'/'+VIEW},function(){return PEND.then(longUrl)})}
+function editUrl(){if(EDIT)return Promise.resolve(location.origin+'/e/'+EDIT);if(RO)return Promise.resolve('');
+ return create().then(function(){return location.origin+'/e/'+EDIT},function(){return ''})}
+// Edits are saved shortly after they stop; saves run one at a time, last save wins on the server
+function scheduleSave(){if(enc()===BASE&&!SAVE_ERR)return;clearTimeout(ST);ST=setTimeout(saveNow,800);status('Saving…')}
+function saveNow(keep){clearTimeout(ST);ST=null;var snap=enc(),id=EDIT,p=PEND;if(snap===BASE&&!SAVE_ERR)return SQ;
+ SQ=SQ.then(function(){return p}).then(function(z){return api('PUT','/api/bills/'+id,{d:z},keep)})
+  .then(function(){if(id!==EDIT)return;BASE=snap;SAVE_ERR=false;if(!ST)status(enc()===BASE?'All changes saved':'Saving…')},
+   function(){if(id!==EDIT)return;SAVE_ERR=true;status('Couldn’t save changes. They’ll retry on your next edit.')});
+ return SQ}
+function status(m){$('sv').textContent=m}
+function canEdit(){return !RO&&$('canedit').checked}
+// The checkbox picks which link the copy buttons share: read-only /<viewId> or editable /e/<editId>
+function linkUrl(){return canEdit()?editUrl():viewUrl()}
+function renderShare(){
+ $('tog').style.display=RO?'none':'';syncUrl();
+ $('shelp').textContent=RO?'This shared bill is read-only.':canEdit()?
+  'Anyone with the link can change this bill. It always shows the latest version.':
+  'Friends can see the bill but not change it. It always shows the latest version.';
+ $('sv').style.display=MODE==='edit'?'':'none';if(MODE==='edit'&&!$('sv').textContent)status('All changes saved')}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
 function copy(txt,msg){var done=function(){toast(msg)};
  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fb)}else fb();
- function fb(){var l=$('link');if(txt===l.value){l.select();try{document.execCommand('copy');done()}catch(e){toast('Select and copy the link below')}}else{var a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){toast('Copy failed')}a.remove()}}}
+ function fb(){var a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){toast('Copy failed')}a.remove()}}
+// Copy text that is still being fetched; ClipboardItem with a promise keeps Safari's user-gesture permission
+function copyP(p,msg,fail){var later=function(){p.then(function(t){if(t)copy(t,msg);else toast(fail||'Copy failed')})};
+ if(navigator.clipboard&&navigator.clipboard.write&&window.ClipboardItem){
+  try{navigator.clipboard.write([new ClipboardItem({'text/plain':p.then(function(t){if(!t)throw 0;return new Blob([t],{type:'text/plain'})})})]).then(function(){toast(msg)},later);return}catch(e){}}
+ later()}
 function addP(){if(RO)return toast('This shared bill is read-only');var v=$('pn').value.trim();if(!v)return;S.p.push(v);$('pn').value='';render();$('pn').focus()}
 function addI(){if(RO)return toast('This shared bill is read-only');var n=$('in').value.trim(),a=parseFloat($('ia').value);if(!n||!(a>=0))return toast('Enter a name and price');S.i.push({n:n,a:a,s:[]});$('in').value='';$('ia').value='';render();$('in').focus()}
 $('addP').onclick=addP;$('addI').onclick=addI;
@@ -225,22 +293,35 @@ document.addEventListener('click',function(e){var b=e.target.closest('button');i
  else if(d.sc!==undefined){S.sc=parseFloat(d.sc);render()}
  else if(d.pd!==undefined){S.pd=S.pd===+d.pd?-1:+d.pd;render()}});
 document.addEventListener('change',function(e){
- if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}
+ if(e.target.id==='canedit')renderShare();
+ else if(e.target.id==='cs'){if(RO)return toast('This shared bill is read-only');var v=parseFloat(e.target.value);S.sc=v>=0&&v<=100?v:0;render()}
  else if(e.target.id==='cur'){
   if(RO){e.target.value=S.c;return toast('This shared bill is read-only')}
   if(curOk(e.target.value)){S.c=e.target.value;render()}
  }
 });
-$('cp').onclick=function(){var v=$('link').value;if(!v)return toast('Link unavailable');copy(v,'Link copied')};
-$('wa').onclick=function(){var c=calc(),pd=S.p[S.pd],L='';
+var EDIT_FAIL='Couldn\u2019t create an edit link. Try again in a moment.';
+$('cp').onclick=function(){copyP(linkUrl(),canEdit()?'Edit link copied':'Link copied',EDIT_FAIL)};
+$('wa').onclick=function(){var c=calc(),pd=S.p[S.pd];
  var t='🧾 *Bill split*\nTotal: *'+money(c.sub+c.svc)+'*'+(S.sc?' (incl. '+S.sc+'% service)':'')+'\n\n';
  t+=pd?'💸 *Pay '+pd+':*\n':'*Who owes what:*\n';
  S.p.forEach(function(p,k){if(k!==S.pd)t+='• '+p+' – '+money(c.tot[k])+'\n'});
  if(c.un)t+='\n⚠️ '+money(c.un)+' not yet assigned\n';
- L=$('link').value;if(L)t+='\nSee the full split: '+L;
- copy(t.trim(),'Summary copied')};
-$('reset').onclick=function(){if(confirm('Clear everything and start a new bill?')){var keptCur=curOk(S.c)?S.c:'GBP';S={p:[],i:[],sc:0,pd:-1,c:keptCur};try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}render()}};
-load();render();
+ var ed=canEdit();
+ copyP(linkUrl().then(function(L){return L?(t+'\n'+(ed?'View or edit the split: ':'See the full split: ')+L).trim():''}),'Summary copied',EDIT_FAIL)};
+$('reset').onclick=function(){if(!confirm(MODE==='local'?'Clear everything and start a new bill?':'Start a new bill? Shared links will keep showing this one.'))return;
+ var keptCur=curOk(S.c)?S.c:'GBP';if(ST)saveNow(true);S={p:[],i:[],sc:0,pd:-1,c:keptCur};
+ MODE='local';RO=false;VIEW=EDIT=null;CR=null;SAVE_ERR=false;status('');$('canedit').checked=false;
+ try{history.replaceState(null,'','/')}catch(e){}render()};
+window.addEventListener('pagehide',function(){if(ST)saveNow(true)});
+function boot(){
+ try{localStorage.removeItem('bsplitr-share')}catch(e){} // no longer used
+ // Opening an edit link keeps it in the address bar with Allow editing ticked; the key is remembered either way
+ $('canedit').checked=!!window.EDIT_ID;
+ if(window.SHARED){VIEW=window.VIEW_ID;EDIT=window.EDIT_ID||getKeys()[VIEW]||null;if(window.EDIT_ID)saveKey(VIEW,EDIT);MODE=EDIT?'edit':'view';RO=!EDIT;
+  return dec(SHARED).then(function(t){var o=norm(JSON.parse(t));if(o){if(!curOk(o.c))o.c='GBP';S=o}}).then(null,function(){}).then(function(){BASE=enc()})}
+ return load()}
+boot().then(render);
 </script>
 </body>
 </html>
