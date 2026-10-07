@@ -267,8 +267,8 @@ function linkUrl(){return canEdit()?editUrl():viewUrl()}
 function renderShare(){
  $('tog').style.display=RO?'none':'';syncUrl();
  $('shelp').textContent=RO?'This shared bill is read-only.':canEdit()?
-  'Anyone with the link can change this bill. It always shows the latest version.':
-  'Friends can see the bill but not change it. It always shows the latest version.';
+  'Anyone with the link can change this bill. It always shows the latest version. Links expire 30 days after the last edit.':
+  'Friends can see the bill but not change it. It always shows the latest version. Links expire 30 days after the last edit.';
  $('sv').style.display=MODE==='edit'?'':'none';if(MODE==='edit'&&!$('sv').textContent)status('All changes saved')}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
 function copy(txt,msg){var done=function(){toast(msg)};
@@ -321,7 +321,9 @@ function boot(){
  if(window.SHARED){VIEW=window.VIEW_ID;EDIT=window.EDIT_ID||getKeys()[VIEW]||null;if(window.EDIT_ID)saveKey(VIEW,EDIT);MODE=EDIT?'edit':'view';RO=!EDIT;
   return dec(SHARED).then(function(t){var o=norm(JSON.parse(t));if(o){if(!curOk(o.c))o.c='GBP';S=o}}).then(null,function(){}).then(function(){BASE=enc()})}
  return load()}
-boot().then(render);
+boot().then(render).then(function(){
+ // page.mjs sends unknown or expired links to /?expired
+ if(/[?&]expired\b/.test(location.search)){toast('That bill link has expired');try{history.replaceState(null,'','/')}catch(e){}}});
 </script>
 </body>
 </html>

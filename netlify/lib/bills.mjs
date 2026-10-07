@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs';
 
-// bills: viewId -> { d, updated }   edits: editId -> viewId
+// bills: viewId -> { d, updated, editId }   edits: editId -> viewId
+// netlify/functions/expire.mjs deletes both 30 days after the last edit
 // Strong consistency so a reload straight after someone's edit shows it (the default can lag up to a minute)
 export const bills = () => getStore({ name: 'bills', consistency: 'strong' });
 export const edits = () => getStore({ name: 'edits', consistency: 'strong' });
