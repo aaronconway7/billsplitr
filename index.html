@@ -294,9 +294,7 @@ function canEdit(){return !RO&&$('canedit').checked}
 function linkUrl(){return canEdit()?editUrl():viewUrl()}
 function renderShare(){
  $('tog').style.display=RO?'none':'';syncUrl();
- $('shelp').textContent=RO?'This shared bill is read-only.':canEdit()?
-  'Anyone with the link can change this bill. It always shows the latest version. Links expire 30 days after the last edit.':
-  'Links expire 30 days after the last edit.';
+ $('shelp').textContent=RO?'This shared bill is read-only.':'Links expire 30 days after the last edit.';
  $('sv').style.display=MODE==='edit'?'':'none';if(MODE==='edit'&&!$('sv').textContent)status('All changes saved')}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},1800)}
 function copy(txt,msg){var done=function(){toast(msg)};
