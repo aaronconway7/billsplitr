@@ -76,7 +76,8 @@ button.p{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:60
 .tot.g{font-weight:700;font-size:18px;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
 .warn{color:var(--warn);font-size:14px;margin-top:8px}
 .seg{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.tog{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:14px;cursor:pointer;width:fit-content}.tog input{width:18px;height:18px;margin:0;padding:0;accent-color:var(--acc);cursor:pointer}.tog input:focus{outline:none}.tog input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.tog{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:13px;cursor:pointer;width:fit-content}.tog input{width:15px;height:15px;margin:0;padding:0;accent-color:var(--acc);cursor:pointer}.tog input:focus{outline:none}.tog input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.shd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 0 10px}.shd h2,.shd .tog{margin:0}
 .share{display:flex;gap:8px;flex-wrap:wrap}.share>*{flex:1 1 150px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
@@ -135,8 +136,7 @@ footer a:hover{text-decoration:underline}
 <div id="res"></div>
 <div style="margin-top:12px" class="mute">Who paid the bill? <span class="seg" id="payer" style="margin-top:6px"></span></div></div>
 
-<div class="card"><h2>Share</h2>
-<label class="tog" id="tog"><input type="checkbox" id="canedit" autocomplete="off"> Allow editing</label>
+<div class="card"><div class="shd"><h2>Share</h2><label class="tog" id="tog"><input type="checkbox" id="canedit" autocomplete="off"> Allow editing</label></div>
 <div class="share"><button class="p" id="cp">Copy link</button><button id="wa">Copy for WhatsApp</button></div>
 <p class="mute" id="shelp" style="margin:10px 0 0"></p>
 <p class="mute" id="sv" style="margin:4px 0 0" aria-live="polite"></p></div>
