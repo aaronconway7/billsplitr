@@ -1,6 +1,6 @@
 import { toast } from 'svelte-sonner';
 import { emptyBill, type Bill } from './bill.ts';
-import { curOk, money } from './currencies.ts';
+import { curDec, curMeta, curOk, money } from './currencies.ts';
 import type { Receipt } from './scan.ts';
 import { calc } from './split.ts';
 
@@ -130,7 +130,8 @@ export function addScanned(r: Receipt) {
 	let msg = `Added ${added} item${added > 1 ? 's' : ''}`;
 	if (off) msg += `, leaving out ${p(off)} of discounts`;
 	// The model can misread or miss a line, so point out when the receipt's own total disagrees
+	// by at least one of the currency's smallest units (receipts round the service to them)
 	const got = sum + svc + (r.tax ?? 0);
-	if (r.total != null && Math.abs(got - r.total) >= 0.01) msg += `. Check them: the receipt says ${p(r.total)}, these come to ${p(got)}`;
+	if (r.total != null && Math.abs(got - r.total) >= 0.5 / 10 ** curDec(curMeta(b.c))) msg += `. Check them: the receipt says ${p(r.total)}, these come to ${p(got)}`;
 	return msg;
 }

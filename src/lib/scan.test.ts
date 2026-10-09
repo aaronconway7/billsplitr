@@ -103,6 +103,11 @@ describe('addScanned', () => {
 		expect(msg).toBe('Added 1 item, leaving out £5.00 of discounts. Check them: the receipt says £12.00, these come to £10.00');
 	});
 
+	it("doesn't flag a total that only differs by the receipt's rounding", () => {
+		const msg = addScanned({ items: [{ name: 'Ramen', qty: 1, price: 1234 }], service: { percent: 10 }, total: 1357, currency: 'JPY' });
+		expect(msg).toBe('Added 1 item');
+	});
+
 	it('says when it found nothing', () => {
 		expect(addScanned({ items: [] })).toBe("Couldn't find any items on that receipt");
 	});

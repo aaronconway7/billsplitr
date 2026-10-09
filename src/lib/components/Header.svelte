@@ -17,7 +17,7 @@
 		{#if !app.ro}<ScanButton />{/if}
 		<!-- Small phones get icons and a short currency, so the header stays on one line -->
 		<Button variant="outline" size="sm" aria-label="New bill" title="New bill" class="max-[480px]:w-8 max-[480px]:px-0" onclick={() => (confirming = true)}>
-			<FilePlusIcon class="min-[481px]:hidden" /><span class="max-[480px]:hidden">New bill</span>
+			<FilePlusIcon /><span class="max-[480px]:hidden">New bill</span>
 		</Button>
 		<Select.Root type="single" bind:value={() => app.bill.c, setCurrency} disabled={app.ro}>
 			<Select.Trigger size="sm" aria-label="Currency" class="min-w-[190px] bg-card max-[480px]:min-w-0">
