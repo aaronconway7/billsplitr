@@ -1,6 +1,7 @@
 import type { Bill } from './bill.ts';
 
-// Everything in pence. Shared items split evenly; service is shared in proportion to what each person ordered.
+// Everything in pence. Shared items split evenly; service is worked out on the whole bill and shared in proportion to what
+// each person ordered, with the share for unassigned items (plus any odd pennies) held back in unSvc until they're assigned.
 // Pennies that don't divide evenly go by largest remainder (ties to the earliest), so every column adds up exactly.
 export type Split = ReturnType<typeof calc>;
 
@@ -28,9 +29,11 @@ export function calc(b: Bill) {
 		}
 		allocate(c, s.map(() => 1)).forEach((v, k) => (own[s[k]] += v));
 	}
-	const as = own.reduce((a, v) => a + v, 0);
-	const svc = as > 0 ? Math.round(b.sm ? b.sc * 100 : (as * b.sc) / 100) : 0;
-	const svcBy = allocate(svc, own);
+	const svc = sub > 0 ? Math.round(b.sm ? b.sc * 100 : (sub * b.sc) / 100) : 0;
+	// While anything's unassigned everyone's share is rounded down, so it depends only on what they ordered and the
+	// leftover pennies wait in unSvc; once it's all assigned they're handed out as usual (only ever adding a penny)
+	const svcBy = un ? own.map((o) => Math.floor((svc * o) / sub)) : allocate(svc, own);
+	const unSvc = svc - svcBy.reduce((a, v) => a + v, 0);
 	const tot = own.map((o, k) => o + svcBy[k]);
-	return { own, svcBy, tot, sub, un, svc, total: sub + svc };
+	return { own, svcBy, tot, sub, un, unSvc, svc, total: sub + svc };
 }

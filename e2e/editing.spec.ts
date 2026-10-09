@@ -19,9 +19,9 @@ test('splits a bill', async ({ page }) => {
 	await expect(result(page, 'Cat')).toContainText('£10.00');
 	await expect(result(page, 'Cat')).toContainText('£11.25');
 	await expect(page.getByText('Items£47.49')).toBeVisible();
-	await expect(page.getByText('Service / tip (12.5%)£5.31')).toBeVisible();
-	await expect(page.getByText('Total£52.80')).toBeVisible();
-	await expect(page.getByText("£4.99 of items aren't assigned to anyone yet.")).toBeVisible();
+	await expect(page.getByText('Service / tip (12.5%)£5.94')).toBeVisible();
+	await expect(page.getByText('Total£53.43')).toBeVisible();
+	await expect(page.getByText("£4.99 of items (+ £0.63 service) aren't assigned to anyone yet.")).toBeVisible();
 	await expect(page.getByText('Ann pays Bob £18.28')).toBeVisible();
 	await expect(page.getByText('Cat pays Bob £11.25')).toBeVisible();
 	await expect(item(page, 'Pizza').getByRole('button', { name: 'Ann' })).toHaveAttribute('aria-pressed', 'true');
@@ -48,7 +48,7 @@ test('service percentage slider', async ({ page }) => {
 	// Each arrow key is one 0.5% step
 	await slider.focus();
 	for (let k = 0; k < 15; k++) await slider.press('ArrowRight');
-	await expect(page.getByText('Service / tip (20%)£8.50')).toBeVisible();
+	await expect(page.getByText('Service / tip (20%)£9.50')).toBeVisible();
 	await expect(page.getByText('20%', { exact: true })).toBeVisible();
 	await expect(page.getByRole('button', { name: '12.5%' })).toHaveAttribute('aria-pressed', 'false');
 	await page.getByRole('button', { name: '10%' }).click();
@@ -99,10 +99,10 @@ test('fixed service amount', async ({ page }) => {
 	await amount.blur();
 	await expect(page.getByText('Service / tip£5.00')).toBeVisible();
 	await expect(page.getByText('Total£52.49')).toBeVisible();
-	// £5 shared by what each ordered: £1.91, £1.91, £1.18
-	await expect(result(page, 'Ann')).toContainText('£16.25 + £1.91 service');
-	await expect(result(page, 'Ann')).toContainText('£18.16');
-	await expect(result(page, 'Cat')).toContainText('£11.18');
+	// £5 shared by what each ordered, Bread's 53p held back until it's assigned: £1.71, £1.71, £1.05
+	await expect(result(page, 'Ann')).toContainText('£16.25 + £1.71 service');
+	await expect(result(page, 'Ann')).toContainText('£17.96');
+	await expect(result(page, 'Cat')).toContainText('£11.05');
 	await page.reload();
 	await expect(page.getByLabel('Service amount')).toHaveValue('5');
 	// Clearing a loaded amount stays in Amount mode
@@ -123,7 +123,8 @@ test('removing a person keeps everyone else’s shares and the payer', async ({ 
 	await expect(item(page, 'Wine').getByRole('button', { name: 'Bob' })).toHaveAttribute('aria-pressed', 'true');
 	await expect(item(page, 'Wine').getByRole('button', { name: 'Cat' })).toHaveAttribute('aria-pressed', 'true');
 	await expect(payerChips(page).getByRole('button', { name: 'Bob' })).toHaveAttribute('aria-pressed', 'true');
-	await expect(result(page, 'Bob')).toContainText('£27.50 + £3.44 service · paid');
+	// Bread is still unassigned, so Bob's 343.97p rounds down and the odd penny waits with Bread
+	await expect(result(page, 'Bob')).toContainText('£27.50 + £3.43 service · paid');
 	// Removing the payer clears it
 	await page.getByRole('button', { name: 'Remove Bob' }).click();
 	await expect(page.getByText(/· paid/)).toHaveCount(0);
@@ -188,7 +189,7 @@ test('summary text', async ({ page }) => {
 	await toast(page, 'Summary copied');
 	const text = await clipboard(page);
 	expect(text).toMatch(
-		/^🧾 \*Bill split\*\nTotal: \*£52\.80\* \(incl\. 12\.5% service\)\n\n💸 \*Pay Bob:\*\n• Ann – £18\.28\n• Cat – £11\.25\n\n⚠️ £4\.99 not yet assigned\n\nSee the full split: http:\/\/localhost:\d+\/#z\S+$/
+		/^🧾 \*Bill split\*\nTotal: \*£53\.43\* \(incl\. 12\.5% service\)\n\n💸 \*Pay Bob:\*\n• Ann – £18\.28\n• Cat – £11\.25\n\n⚠️ £5\.62 not yet assigned\n\nSee the full split: http:\/\/localhost:\d+\/#z\S+$/
 	);
 });
 

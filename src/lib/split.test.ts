@@ -45,13 +45,27 @@ describe('calc', () => {
 		expect(c.total).toBe(10778);
 	});
 
-	it('ignores a fixed service until something is assigned', () => {
-		expect(calc(bill({ sc: 5, sm: 1, i: [{ n: 'x', a: 5, s: [] }] }))).toMatchObject({ svc: 0, total: 500 });
+	it('counts service before anything is assigned', () => {
+		expect(calc(bill({ sc: 5, sm: 1, i: [{ n: 'x', a: 5, s: [] }] }))).toMatchObject({ svc: 500, unSvc: 500, total: 1000, tot: [0, 0, 0] });
 	});
 
 	it('counts unassigned items, and items shared with removed people', () => {
 		const c = calc(bill({ sc: 10, i: [{ n: 'x', a: 5, s: [] }, { n: 'y', a: 2, s: [7] }] }));
-		expect(c).toMatchObject({ un: 700, sub: 700, svc: 0, tot: [0, 0, 0] });
+		expect(c).toMatchObject({ un: 700, unSvc: 70, sub: 700, svc: 70, total: 770, tot: [0, 0, 0] });
+	});
+
+	it('holds back the service on unassigned items, so nobody’s share changes when they’re assigned', () => {
+		const c = calc(bill({ sc: 5, sm: 1, i: [{ n: 'x', a: 30, s: [0] }, { n: 'y', a: 20, s: [] }] }));
+		expect(c).toMatchObject({ svc: 500, svcBy: [300, 0, 0], unSvc: 200, tot: [3300, 0, 0], total: 5500 });
+		expect(c.tot.reduce((a, v) => a + v, 0) + c.un + c.unSvc).toBe(c.total);
+	});
+
+	it('keeps everyone else’s service to the penny while items are being assigned', () => {
+		const i = [{ n: 'a', a: 25.62, s: [0] }, { n: 'b', a: 13.18, s: [2] }, { n: 'c', a: 16.46, s: [2] }, { n: 'd', a: 12.43, s: [] as number[] }, { n: 'e', a: 9.99, s: [] as number[] }];
+		const before = calc(bill({ sc: 12.5, i }));
+		const after = calc(bill({ sc: 12.5, i: i.map((it) => (it.n === 'd' ? { ...it, s: [0] } : it)) }));
+		expect(after.svcBy[2]).toBe(before.svcBy[2]);
+		expect(after.tot.reduce((a, v) => a + v, 0) + after.un + after.unSvc).toBe(after.total);
 	});
 });
 
