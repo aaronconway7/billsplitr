@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Input } from '#lib/components/ui/input/index.js';
-	import { app, setService } from '#lib/state.svelte.ts';
+	import { app, setService } from '#lib/editor.svelte.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
 

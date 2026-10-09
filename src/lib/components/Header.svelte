@@ -3,7 +3,8 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Select from '#lib/components/ui/select/index.js';
 	import { C, curLabel, curMeta } from '#lib/currencies.ts';
-	import { app, reset, setCurrency } from '#lib/state.svelte.ts';
+	import { app, setCurrency } from '#lib/editor.svelte.ts';
+	import { newBill } from '#lib/share.svelte.ts';
 
 	let confirming = $state(false);
 </script>
@@ -34,7 +35,7 @@
 		</AlertDialog.Header>
 		<AlertDialog.Footer>
 			<AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-			<AlertDialog.Action onclick={() => ((confirming = false), reset())}>New bill</AlertDialog.Action>
+			<AlertDialog.Action onclick={() => ((confirming = false), newBill())}>New bill</AlertDialog.Action>
 		</AlertDialog.Footer>
 	</AlertDialog.Content>
 </AlertDialog.Root>

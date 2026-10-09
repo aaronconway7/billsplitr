@@ -7,7 +7,7 @@
 	import ResultsCard from '#lib/components/ResultsCard.svelte';
 	import ServiceCard from '#lib/components/ServiceCard.svelte';
 	import ShareCard from '#lib/components/ShareCard.svelte';
-	import { boot, connect, flushOnHide } from '#lib/state.svelte.ts';
+	import { boot, connect, flushOnHide } from '#lib/share.svelte.ts';
 	import { stickySide } from '#lib/stickySide.ts';
 
 	connect();

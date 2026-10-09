@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Bill } from './bill.ts';
-import { b64e, dec, enc, encZ, norm } from './codec.ts';
+import { b64e, dec, enc, encZ, norm, parseBill } from './codec.ts';
 
 const bill: Bill = {
 	p: ['Ann', 'Bob', 'Zoë'],
@@ -43,5 +43,17 @@ describe('codec', () => {
 	it('rejects anything else', () => {
 		expect(norm({ p: 'nope' })).toBeNull();
 		expect(norm(null)).toBeNull();
+	});
+});
+
+describe('parseBill', () => {
+	it('falls back to GBP for unknown currencies', () => {
+		expect(parseBill(JSON.stringify({ ...bill, c: 'XXX' }))?.c).toBe('GBP');
+	});
+
+	it('returns null for anything that isn’t a bill', () => {
+		expect(parseBill(null)).toBeNull();
+		expect(parseBill('not json')).toBeNull();
+		expect(parseBill('{"p":1}')).toBeNull();
 	});
 });
