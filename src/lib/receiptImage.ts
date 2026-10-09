@@ -1,6 +1,7 @@
 import { toast } from 'svelte-sonner';
 import { pack } from './codec.ts';
 import { snapshot } from './editor.svelte.ts';
+import { settled } from './motion.ts';
 import { EDIT_FAIL } from './share.svelte.ts';
 
 const NAME = 'billsplitr-receipt.png';
@@ -33,6 +34,8 @@ async function receiptOnly() {
 	const el = document.getElementById('receipt');
 	if (!el) throw new Error('no receipt');
 	const { domToBlob } = await import('modern-screenshot');
+	// A just-edited amount may still be rolling, or a row sliding
+	await settled();
 	// The image is sized from the panel on screen, so take off the space the skipped parts use
 	let skipped = 0;
 	for (const s of el.querySelectorAll<HTMLElement>('[data-capture="skip"]')) {

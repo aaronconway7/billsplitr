@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { money as fmt } from '#lib/currencies.ts';
 	import { app, currentSplit, togglePayer } from '#lib/editor.svelte.ts';
+	import { rowIn, rowOut } from '#lib/motion.ts';
 	import { serviceLabel } from '#lib/summary.ts';
 	import Chip from './Chip.svelte';
+	import Tally from './Tally.svelte';
 
 	const b = $derived(app.bill);
 	const c = $derived(currentSplit());
@@ -27,11 +29,11 @@
 		{#if b.p.length}
 			<ul class="space-y-2.5" aria-label="Who owes what">
 				{#each b.p as p, k}
-					<li>
+					<li in:rowIn>
 						<div class="flex items-baseline">
 							<span class="min-w-0 font-semibold break-words">{p}</span>
 							<span class="leader" aria-hidden="true"></span>
-							<span class="font-mono text-lg font-bold tabular-nums">{money(c.tot[k])}</span>
+							<span class="font-mono text-lg font-bold tabular-nums"><Tally p={c.tot[k]} c={b.c} /></span>
 						</div>
 						<div class="text-sm text-muted-foreground">{money(c.own[k])}{c.svcBy[k] ? ' + ' + money(c.svcBy[k]) + ' service' : ''}{b.pd === k ? ' · paid' : ''}</div>
 					</li>
@@ -42,18 +44,20 @@
 		{/if}
 		<div class="receipt-rule"></div>
 		<div class="space-y-1.5">
-			<div class="flex justify-between"><span>Items</span><span class="font-mono tabular-nums">{money(c.sub)}</span></div>
-			{#if c.svc}<div class="flex justify-between"><span>Service / tip{b.sm ? '' : ' (' + serviceLabel(b) + ')'}</span><span class="font-mono tabular-nums">{money(c.svc)}</span></div>{/if}
-			<div class="flex justify-between pt-1 text-lg font-bold uppercase"><span>Total</span><span class="font-mono tabular-nums">{money(c.total)}</span></div>
+			<div class="flex justify-between"><span>Items</span><span class="font-mono tabular-nums"><Tally p={c.sub} c={b.c} /></span></div>
+			{#if c.svc}<div class="flex justify-between" in:rowIn out:rowOut><span>Service / tip{b.sm ? '' : ' (' + serviceLabel(b) + ')'}</span><span class="font-mono tabular-nums"><Tally p={c.svc} c={b.c} /></span></div>{/if}
+			<div class="flex justify-between pt-1 text-lg font-bold uppercase"><span>Total</span><span class="font-mono tabular-nums"><Tally p={c.total} c={b.c} /></span></div>
 		</div>
 		{#if c.un || lines.length}
-			<div class="receipt-rule"></div>
-			{#if c.un}<p class="text-sm text-destructive">{money(c.un)} of items{c.unSvc ? ' (+ ' + money(c.unSvc) + ' service)' : ''} aren't assigned to anyone yet.</p>{/if}
-			{#if lines.length}
-				<div class="text-sm text-muted-foreground" class:mt-2={c.un}>
-					{#each lines as l}<div>{l}</div>{/each}
-				</div>
-			{/if}
+			<div in:rowIn out:rowOut>
+				<div class="receipt-rule"></div>
+				{#if c.un}<p class="text-sm text-destructive" in:rowIn out:rowOut>{money(c.un)} of items{c.unSvc ? ' (+ ' + money(c.unSvc) + ' service)' : ''} aren't assigned to anyone yet.</p>{/if}
+				{#if lines.length}
+					<div class="text-sm text-muted-foreground" class:mt-2={c.un} in:rowIn out:rowOut>
+						{#each lines as l}<div in:rowIn>{l}</div>{/each}
+					</div>
+				{/if}
+			</div>
 		{/if}
 		<!-- Left out of the shared image -->
 		<div class="receipt-rule" data-capture="skip"></div>

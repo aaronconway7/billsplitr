@@ -3,6 +3,7 @@
 	import { Slider } from '#lib/components/ui/slider/index.js';
 	import { curDec, curMeta, curStep } from '#lib/currencies.ts';
 	import { app, setService } from '#lib/editor.svelte.ts';
+	import { fadeIn } from '#lib/motion.ts';
 	import { serviceLabel } from '#lib/summary.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
@@ -41,35 +42,39 @@
 		<Chip on>{sc ? serviceLabel(app.bill) : 'None'}</Chip>
 	{:else}
 		{#if fixed}
-			<div class="flex items-center gap-2">
-				<Input
-					type="number"
-					inputmode="decimal"
-					min="0"
-					step={curStep(curDec(cur))}
-					placeholder="Amount {cur.sym}"
-					aria-label="Service amount"
-					class="h-10 w-40"
-					value={sc || ''}
-					onchange={(e) => {
-						pickedFor = app.bill;
-						setService(parseFloat(e.currentTarget.value), true);
-					}}
-				/>
+			<div in:fadeIn>
+				<div class="flex items-center gap-2">
+					<Input
+						type="number"
+						inputmode="decimal"
+						min="0"
+						step={curStep(curDec(cur))}
+						placeholder="Amount {cur.sym}"
+						aria-label="Service amount"
+						class="h-10 w-40"
+						value={sc || ''}
+						onchange={(e) => {
+							pickedFor = app.bill;
+							setService(parseFloat(e.currentTarget.value), true);
+						}}
+					/>
+				</div>
+				<p class="mt-2 text-sm text-muted-foreground">Enter the service charge printed on the bill. It's shared in proportion to what each person ordered.</p>
 			</div>
-			<p class="mt-2 text-sm text-muted-foreground">Enter the service charge printed on the bill. It's shared in proportion to what each person ordered.</p>
 		{:else}
-			<div class="flex flex-wrap gap-1.5">
-				{#each PRESETS as v}
-					<Chip on={sc === v} onclick={() => setService(v)}>{v ? v + '%' : 'None'}</Chip>
-				{/each}
+			<div in:fadeIn>
+				<div class="flex flex-wrap gap-1.5">
+					{#each PRESETS as v}
+						<Chip on={sc === v} onclick={() => setService(v)}>{v ? v + '%' : 'None'}</Chip>
+					{/each}
+				</div>
+				<div class="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
+					Adjust
+					<Slider type="single" min={0} max={25} step={0.5} value={sc} onValueChange={(v) => setService(v)} class="flex-1" />
+					<span class="w-12 text-right font-semibold text-foreground tabular-nums">{sc}%</span>
+				</div>
+				<p class="mt-2 text-sm text-muted-foreground">Added to the items and shared in proportion to what each person ordered. If the bill already includes service, switch to Amount.</p>
 			</div>
-			<div class="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
-				Adjust
-				<Slider type="single" min={0} max={25} step={0.5} value={sc} onValueChange={(v) => setService(v)} class="flex-1" />
-				<span class="w-12 text-right font-semibold text-foreground tabular-nums">{sc}%</span>
-			</div>
-			<p class="mt-2 text-sm text-muted-foreground">Added to the items and shared in proportion to what each person ordered. If the bill already includes service, switch to Amount.</p>
 		{/if}
 	{/if}
 </Section>

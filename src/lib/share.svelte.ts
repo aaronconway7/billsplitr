@@ -5,6 +5,7 @@ import { emptyBill } from './bill.ts';
 import { dec, enc, encZ, parseBill } from './codec.ts';
 import { curOk } from './currencies.ts';
 import { app, snapshot } from './editor.svelte.ts';
+import { hush } from './motion.ts';
 import { editKey, localBill, removeLegacy, saveEditKey } from './storage.ts';
 
 export const EDIT_FAIL = 'Couldn’t create an edit link. Try again in a moment.';
@@ -153,6 +154,7 @@ export function connect() {
 export function newBill() {
 	const kept = curOk(app.bill.c) ? app.bill.c : 'GBP';
 	if (saveTimer) saveNow(true);
+	hush();
 	app.bill = emptyBill(kept);
 	Object.assign(app, { mode: 'local', ro: false, view: null, edit: null, canEdit: false, saveStatus: '' });
 	creating = null;
@@ -189,6 +191,8 @@ export async function boot() {
 	app.canEdit = !!window.EDIT_ID;
 	if (window.SHARED && window.VIEW_ID) await loadShared(window.SHARED, window.VIEW_ID);
 	else await loadLocal();
+	// The loaded bill just appears
+	hush();
 	app.ready = true;
 	// page.mjs sends unknown or expired links to /?expired
 	if (/[?&]expired\b/.test(location.search)) {
