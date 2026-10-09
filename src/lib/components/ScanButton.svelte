@@ -8,6 +8,8 @@
 
 	let photo = $state<HTMLInputElement | null>(null);
 	let scanning = $state(false);
+	// Longer than the app's usual toasts: the camera or photo picker has only just closed
+	const duration = 6000;
 
 	// Fills in the items, and the currency and service if they aren't set, from a receipt photo
 	async function scan(e: Event & { currentTarget: HTMLInputElement }) {
@@ -18,10 +20,10 @@
 		const id = toast.loading('Reading the receipt…', { description: 'The photo is sent to Google Gemini to read' });
 		try {
 			const msg = addScanned(await scanReceipt(file));
-			if (msg) toast.success(msg, { id, description: undefined });
+			if (msg) toast.success(msg, { id, description: undefined, duration });
 			else toast.dismiss(id);
 		} catch (err) {
-			toast.error(err instanceof ScanError ? err.message : "Couldn't read that receipt", { id, description: undefined });
+			toast.error(err instanceof ScanError ? err.message : "Couldn't read that receipt", { id, description: undefined, duration });
 		} finally {
 			scanning = false;
 		}

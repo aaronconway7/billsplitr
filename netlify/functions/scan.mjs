@@ -6,7 +6,7 @@ const MIME = /^image\/(jpeg|png|webp)$/;
 const B64 = /^[A-Za-z0-9+/]+={0,2}$/;
 
 // Read the items off a receipt photo: { image: base64, mime } -> cleanReceipt's result
-// 429 when Gemini's free quota is used up, 504 when it's too slow, 502 for anything else it gets wrong
+// 429 when Gemini's free quota is used up, 504 when it's too slow, 502 (saying why) for anything else it gets wrong
 export default async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   const key = process.env.GEMINI_API_KEY;
@@ -17,36 +17,45 @@ export default async (req) => {
   try { ({ image, mime } = JSON.parse(text)); } catch { /* checked below */ }
   if (typeof image !== 'string' || !B64.test(image) || !MIME.test(mime ?? '')) return new Response('Bad payload', { status: 400 });
 
+  const body = JSON.stringify({
+    contents: [{ parts: [{ inlineData: { mimeType: mime, data: image } }, { text: PROMPT }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: SCHEMA,
+      // Gemini 3 models should keep their default temperature; lower ones can make them loop
+      thinkingConfig: { thinkingLevel: 'low' },
+    },
+  });
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || MODEL}:generateContent`;
+  // Functions get 60s; Gemini usually takes 3-10s, and an overloaded model (500/503) is worth one more try
+  const end = Date.now() + 50_000;
   let r;
-  try {
-    r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || MODEL}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        contents: [{ parts: [{ inlineData: { mimeType: mime, data: image } }, { text: PROMPT }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          responseSchema: SCHEMA,
-          temperature: 0,
-          // Reading a receipt doesn't need much thought, and functions time out after 10s
-          thinkingConfig: { thinkingLevel: 'low' },
-        },
-      }),
-      signal: AbortSignal.timeout(9000),
-    });
-  } catch (e) {
-    return new Response('Scan failed', { status: e?.name === 'TimeoutError' ? 504 : 502 });
+  for (let attempt = 0; ; attempt++) {
+    try {
+      r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body,
+        signal: AbortSignal.timeout(end - Date.now()),
+      });
+    } catch (e) {
+      console.error('Gemini', e);
+      return new Response('Scan failed', { status: e?.name === 'TimeoutError' ? 504 : 502 });
+    }
+    if (attempt || (r.status !== 500 && r.status !== 503) || end - Date.now() < 15_000) break;
+    console.error('Gemini', r.status, 'retrying');
   }
   if (r.status === 429) return new Response('Out of scans for now', { status: 429 });
   if (!r.ok) {
     console.error('Gemini', r.status, await r.text());
-    return new Response('Scan failed', { status: 502 });
+    return new Response(`Scan failed (Gemini ${r.status})`, { status: 502 });
   }
+  const out = await r.json().catch(() => null);
   try {
-    const out = await r.json();
-    return Response.json(cleanReceipt(JSON.parse(out.candidates[0].content.parts.find((p) => p.text && !p.thought).text)));
+    return Response.json(cleanReceipt(JSON.parse(out.candidates[0].content.parts.find((/** @type {any} */ p) => p.text && !p.thought).text)));
   } catch {
-    return new Response('Scan failed', { status: 502 });
+    console.error('Gemini gave no readable JSON', JSON.stringify(out).slice(0, 2000));
+    return new Response(`Scan failed (${out?.candidates?.[0]?.finishReason ?? 'no answer'})`, { status: 502 });
   }
 };
 
