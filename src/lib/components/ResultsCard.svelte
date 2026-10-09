@@ -15,19 +15,21 @@
 </script>
 
 <Section title="Who owes what">
-	<div class="divide-y">
-		{#each b.p as p, k}
-			<div class="flex items-center justify-between py-2.5">
-				<div>
-					<div class="font-semibold">{p}</div>
-					<div class="text-sm text-muted-foreground">{money(c.own[k])}{b.pd === k ? ' · paid' : ''}</div>
-				</div>
-				<div class="text-lg font-bold tabular-nums">{money(c.tot[k])}</div>
-			</div>
-		{:else}
-			<p class="text-sm text-muted-foreground">Add people and items to see the split.</p>
-		{/each}
-	</div>
+	{#if b.p.length}
+		<ul class="divide-y" aria-label="Who owes what">
+			{#each b.p as p, k}
+				<li class="flex items-center justify-between py-2.5">
+					<div>
+						<div class="font-semibold">{p}</div>
+						<div class="text-sm text-muted-foreground">{money(c.own[k])}{b.pd === k ? ' · paid' : ''}</div>
+					</div>
+					<div class="text-lg font-bold tabular-nums">{money(c.tot[k])}</div>
+				</li>
+			{/each}
+		</ul>
+	{:else}
+		<p class="text-sm text-muted-foreground">Add people and items to see the split.</p>
+	{/if}
 	<div class="mt-2 space-y-2 tabular-nums">
 		<div class="flex justify-between"><span>Items</span><span>{money(c.sub)}</span></div>
 		{#if c.svc}<div class="flex justify-between"><span>Service / tip ({b.sc}%)</span><span>{money(c.svc)}</span></div>{/if}

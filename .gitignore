@@ -6,3 +6,5 @@ deno.lock
 /.svelte-kit/
 /build/
 vite.config.ts.timestamp-*
+/test-results/
+/playwright-report/

@@ -29,34 +29,36 @@
 			<Button size="lg" onclick={add}>Add</Button>
 		</div>
 	{/if}
-	<div class="mt-1.5 divide-y">
-		{#each app.bill.i as it, j}
-			<div class="py-3">
-				<div class="flex items-center justify-between gap-2">
-					<span class="font-semibold">{it.n}</span>
-					<span class="flex items-center gap-1">
-						<span class="font-bold tabular-nums">{money(Math.round(it.a * 100), app.bill.c)}</span>
-						{#if !app.ro}
-							<Button variant="ghost" size="icon-xs" class="text-muted-foreground" aria-label="Remove item" onclick={() => removeItem(j)}><XIcon /></Button>
+	{#if app.bill.i.length}
+		<ul class="mt-1.5 divide-y" aria-label="Items">
+			{#each app.bill.i as it, j}
+				<li class="py-3">
+					<div class="flex items-center justify-between gap-2">
+						<span class="font-semibold">{it.n}</span>
+						<span class="flex items-center gap-1">
+							<span class="font-bold tabular-nums">{money(Math.round(it.a * 100), app.bill.c)}</span>
+							{#if !app.ro}
+								<Button variant="ghost" size="icon-xs" class="text-muted-foreground" aria-label="Remove item" onclick={() => removeItem(j)}><XIcon /></Button>
+							{/if}
+						</span>
+					</div>
+					<div class="mt-2 flex flex-wrap gap-1.5">
+						{#if app.ro}
+							{#each app.bill.p as p, k}
+								{#if it.s.includes(k)}<Chip on>{p}</Chip>{/if}
+							{/each}
+							{#if !app.bill.p.some((_, k) => it.s.includes(k))}<span class="text-sm text-muted-foreground">Unassigned</span>{/if}
+						{:else}
+							{#each app.bill.p as p, k}
+								<Chip on={it.s.includes(k)} onclick={() => toggleShare(j, k)}>{p}</Chip>
+							{/each}
+							{#if app.bill.p.length > 1}<Chip onclick={() => assignAll(j)}>Everyone</Chip>{/if}
 						{/if}
-					</span>
-				</div>
-				<div class="mt-2 flex flex-wrap gap-1.5">
-					{#if app.ro}
-						{#each app.bill.p as p, k}
-							{#if it.s.includes(k)}<Chip on>{p}</Chip>{/if}
-						{/each}
-						{#if !app.bill.p.some((_, k) => it.s.includes(k))}<span class="text-sm text-muted-foreground">Unassigned</span>{/if}
-					{:else}
-						{#each app.bill.p as p, k}
-							<Chip on={it.s.includes(k)} onclick={() => toggleShare(j, k)}>{p}</Chip>
-						{/each}
-						{#if app.bill.p.length > 1}<Chip onclick={() => assignAll(j)}>Everyone</Chip>{/if}
-					{/if}
-				</div>
-			</div>
-		{:else}
-			<p class="mt-3 text-sm text-muted-foreground">No items yet.</p>
-		{/each}
-	</div>
+					</div>
+				</li>
+			{/each}
+		</ul>
+	{:else}
+		<p class="mt-3 text-sm text-muted-foreground">No items yet.</p>
+	{/if}
 </Section>
