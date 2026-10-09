@@ -5,6 +5,7 @@
 	import { C, curLabel, curMeta } from '#lib/currencies.ts';
 	import { app, setCurrency } from '#lib/editor.svelte.ts';
 	import { newBill } from '#lib/share.svelte.ts';
+	import ScanButton from './ScanButton.svelte';
 
 	let confirming = $state(false);
 </script>
@@ -12,6 +13,7 @@
 <div class="flex flex-wrap items-start justify-between gap-3">
 	<h1 class="text-[28px] leading-tight font-bold tracking-tight">Bill<span class="text-primary">Splitr</span></h1>
 	<div class="flex items-center gap-2">
+		{#if !app.ro}<ScanButton />{/if}
 		<Button variant="outline" size="sm" onclick={() => (confirming = true)}>New bill</Button>
 		<Select.Root type="single" bind:value={() => app.bill.c, setCurrency} disabled={app.ro}>
 			<Select.Trigger size="sm" aria-label="Currency" class="min-w-[190px] bg-card max-[480px]:max-w-[124px] max-[480px]:min-w-0">
