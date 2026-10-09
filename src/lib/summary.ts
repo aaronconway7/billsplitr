@@ -5,7 +5,7 @@ import type { Split } from './split.ts';
 // "12.5%" or, for a fixed service, "£14.63"
 export const serviceLabel = (b: Bill) => (b.sm ? money(Math.round(b.sc * 100), b.c) : b.sc + '%');
 
-// The "Copy for WhatsApp" text (WhatsApp renders *bold*), followed by the bill's link
+// The shared summary text (chat apps like WhatsApp render *bold*), followed by the bill's link
 export function summary(b: Bill, c: Split, link: string, editable: boolean) {
 	const fmt = (p: number) => money(p, b.c);
 	const payer = b.p[b.pd];
