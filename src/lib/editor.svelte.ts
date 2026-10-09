@@ -1,6 +1,7 @@
 import { toast } from 'svelte-sonner';
 import { emptyBill, type Bill } from './bill.ts';
-import { curOk } from './currencies.ts';
+import { curDec, curMeta, curOk, money } from './currencies.ts';
+import type { Receipt } from './scan.ts';
 import { calc } from './split.ts';
 
 // mode: 'local' (bill only in this browser, or a legacy #hash link), 'edit' (/e/<editId>), 'view' (/<viewId>)
@@ -100,4 +101,37 @@ export function togglePayer(k: number) {
 
 export function setCurrency(c: string) {
 	if (!readOnly() && curOk(c)) app.bill.c = c;
+}
+
+// Adds a scanned receipt's items to the bill and says what happened, for a toast.
+// Takes its currency only for a bill with no items yet, and its service (plus any sales tax on top,
+// as one fixed amount) only if none is set. Discounts are left out, since items can't be negative
+export function addScanned(r: Receipt) {
+	if (readOnly()) return '';
+	const b = app.bill;
+	const fresh = !b.i.length;
+	if (fresh && r.currency) setCurrency(r.currency);
+	let sum = 0, off = 0, added = 0;
+	for (const { name, qty, price } of r.items) {
+		sum += price;
+		if (price < 0) off -= price;
+		else {
+			b.i.push({ n: (qty > 1 ? `${qty} × ${name}` : name).slice(0, 40), a: price, s: [] });
+			added++;
+		}
+	}
+	const svc = r.service?.percent != null ? (sum * r.service.percent) / 100 : (r.service?.amount ?? 0);
+	if (!b.sc && (svc || r.tax)) {
+		if (r.service?.percent != null && !r.tax) setService(r.service.percent);
+		else setService(Math.round((svc + (r.tax ?? 0)) * 100) / 100, true);
+	}
+	if (!added) return "Couldn't find any items on that receipt";
+	const p = (v: number) => money(Math.round(v * 100), b.c);
+	let msg = `Added ${added} item${added > 1 ? 's' : ''}`;
+	if (off) msg += `, leaving out ${p(off)} of discounts`;
+	// The model can misread or miss a line, so point out when the receipt's own total disagrees
+	// by at least one of the currency's smallest units (receipts round the service to them)
+	const got = sum + svc + (r.tax ?? 0);
+	if (r.total != null && Math.abs(got - r.total) >= 0.5 / 10 ** curDec(curMeta(b.c))) msg += `. Check them: the receipt says ${p(r.total)}, these come to ${p(got)}`;
+	return msg;
 }
