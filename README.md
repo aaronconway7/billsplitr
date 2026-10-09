@@ -44,8 +44,8 @@ Other scripts: `npm test` (unit tests), `npm run test:e2e` (Playwright end-to-en
 - `src/lib/editor.svelte.ts` — the bill's state, the current split and the editing actions
 - `src/lib/share.svelte.ts` — share links, saving to the server, loading a bill and starting a new one; `storage.ts` — localStorage
 - `src/lib/codec.ts` — the share format (must stay compatible with existing links), `split.ts` — the maths, `summary.ts` — the WhatsApp text, `currencies.ts`
-- `src/app.html` — page head and meta tags; `src/app.css` — Tailwind setup and the brand theme (shadcn colour tokens for light and dark)
+- `src/app.html` — page head, meta tags and structured data (the home page is prerendered, so crawlers see the full page without running JavaScript); `src/app.css` — Tailwind setup and the brand theme (shadcn colour tokens for light and dark)
 - `src/lib/scan.ts` — shrinks a receipt photo and sends it to the scan function; `addScanned` in `editor.svelte.ts` adds what it finds
 - `netlify/functions/` — create (`POST /api/bills`), save (`PUT /api/bills/<editId>`), scan (`POST /api/scan`, with the prompt and clean-up in `netlify/lib/receipt.mjs`), the shared-bill page (`/<viewId>`, `/e/<editId>`, which embeds the bill in `build/index.html`) and the daily expiry job (`expire.mjs`)
 - `netlify/lib/bills.mjs` — Netlify Blobs stores and validation shared by the functions
-- `static/` — social preview image, favicons and `oembed.json`
+- `static/` — social preview image, favicons and app icons, `oembed.json`, `manifest.webmanifest`, `robots.txt` and `sitemap.xml` (update `lastmod` and the URLs if the domain changes). Shared bill pages send `X-Robots-Tag: noindex`

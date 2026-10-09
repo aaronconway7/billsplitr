@@ -20,7 +20,7 @@
 			<FilePlusIcon /><span class="max-[480px]:hidden">New bill</span>
 		</Button>
 		<Select.Root type="single" bind:value={() => app.bill.c, setCurrency} disabled={app.ro}>
-			<Select.Trigger size="sm" aria-label="Currency" class="min-w-[190px] bg-card max-[480px]:min-w-0">
+			<Select.Trigger size="sm" aria-label="Currency: {curLabel(curMeta(app.bill.c))}" class="min-w-[190px] bg-card max-[480px]:min-w-0">
 				<span class="truncate max-[480px]:hidden">{curLabel(curMeta(app.bill.c))}</span>
 				<span class="min-[481px]:hidden">{curMeta(app.bill.c).flag} {curMeta(app.bill.c).sym}</span>
 			</Select.Trigger>

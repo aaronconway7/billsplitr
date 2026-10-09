@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>BillSplitr</title>
-<meta name="description" content="Add the bill, tap who had what, see who owes what. No sign-up.">
+<title>Split the Bill Calculator – Free, No Sign-up | BillSplitr</title>
+<meta name="description" content="Split a restaurant bill fairly in seconds. Tap who had what, add service or tip, scan the receipt and share a link. Free, no sign-up.">
 <meta name="application-name" content="BillSplitr">
 <meta name="author" content="Aaron Conway">
 <meta name="theme-color" content="#0b7a5a">
@@ -15,13 +15,14 @@
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <link rel="alternate" type="application/json+oembed" href="https://usebillsplitr.netlify.app/oembed.json" title="BillSplitr">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BillSplitr">
 <meta property="og:locale" content="en_GB">
 <meta property="og:url" content="https://usebillsplitr.netlify.app/">
-<meta property="og:title" content="BillSplitr">
-<meta property="og:description" content="Add the bill, tap who had what, see who owes what. No sign-up.">
+<meta property="og:title" content="BillSplitr – split the bill, no sign-up">
+<meta property="og:description" content="Split a restaurant bill fairly in seconds. Tap who had what, add service or tip, scan the receipt and share a link. Free, no sign-up.">
 <meta property="og:image" content="https://usebillsplitr.netlify.app/og-image.jpg">
 <meta property="og:image:secure_url" content="https://usebillsplitr.netlify.app/og-image.jpg">
 <meta property="og:image:type" content="image/jpeg">
@@ -29,16 +30,18 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="BillSplitr – split the bill. No sign-up.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="BillSplitr">
-<meta name="twitter:description" content="Add the bill, tap who had what, see who owes what. No sign-up.">
+<meta name="twitter:title" content="BillSplitr – split the bill, no sign-up">
+<meta name="twitter:description" content="Split a restaurant bill fairly in seconds. Tap who had what, add service or tip, scan the receipt and share a link. Free, no sign-up.">
 <meta name="twitter:image" content="https://usebillsplitr.netlify.app/og-image.jpg">
 <meta name="twitter:image:alt" content="BillSplitr – split the bill. No sign-up.">
 <meta itemprop="name" content="BillSplitr">
-<meta itemprop="description" content="Add the bill, tap who had what, see who owes what. No sign-up.">
+<meta itemprop="description" content="Split a restaurant bill fairly in seconds. Tap who had what, add service or tip, scan the receipt and share a link. Free, no sign-up.">
 <meta itemprop="image" content="https://usebillsplitr.netlify.app/og-image.jpg">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"BillSplitr","url":"https://usebillsplitr.netlify.app/","description":"Add the bill, tap who had what, see who owes what. No sign-up.","image":"https://usebillsplitr.netlify.app/og-image.jpg","applicationCategory":"FinanceApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"}}
+{"@context":"https://schema.org","@type":"WebApplication","name":"BillSplitr","url":"https://usebillsplitr.netlify.app/","description":"Split a restaurant bill fairly in seconds. Tap who had what, add service or tip, scan the receipt and share a link. Free, no sign-up.","image":"https://usebillsplitr.netlify.app/og-image.jpg","applicationCategory":"FinanceApplication","operatingSystem":"Any","alternateName":"Bill Splitter","inLanguage":"en-GB","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript","screenshot":"https://usebillsplitr.netlify.app/og-image.jpg","featureList":["Split a bill by who had what","Share items between some or all people","Service charge or tip as a percentage or fixed amount","Scan a receipt photo to fill in the bill","Shareable view and edit links","Dozens of currencies"],"creator":{"@type":"Person","name":"Aaron Conway","url":"https://aaronconway.co.uk"},"offers":{"@type":"Offer","price":"0","priceCurrency":"GBP"}}
 </script>
+<!-- The page is prerendered with an empty bill; hide it until the real one (saved, shared or new) has loaded, so nothing flashes -->
+<style>main[data-ready="false"]{visibility:hidden}</style>
 %sveltekit.head%
 </head>
 <body>
