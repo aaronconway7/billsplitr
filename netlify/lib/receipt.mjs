@@ -6,7 +6,11 @@
 export const MODEL = 'gemini-3.5-flash-lite';
 
 export const PROMPT = `This is a photo of a restaurant or shop receipt. List what was bought so a group can split it.
-- items: one entry per printed line item, in order. name as printed (expand obvious abbreviations), qty (1 if not shown) and price, the line's total in the receipt's currency.
+- items: one entry per printed line item, in order.
+  - name: as printed, in normal capitalisation rather than ALL CAPS, expanding obvious abbreviations.
+  - qty: the quantity (1 if not shown).
+  - unitPrice: the price of one, if printed.
+  - price: the line's total, qty × unitPrice. When there are two amount columns (like Precio and Importe, or Price and Amount) it's the right-hand one.
 - Leave out subtotal, total, tax/VAT, tips already paid, payment, change and card lines.
 - Put a discount or voucher in as an item with a negative price.
 - service: a service charge or gratuity added to the bill, as percent if one is printed, otherwise amount. Leave it out if there isn't one.
@@ -23,7 +27,7 @@ export const SCHEMA = {
       type: 'array',
       items: {
         type: 'object',
-        properties: { name: { type: 'string' }, qty: { type: 'number' }, price: { type: 'number' } },
+        properties: { name: { type: 'string' }, qty: { type: 'number' }, unitPrice: { type: 'number' }, price: { type: 'number' } },
         required: ['name', 'price'],
       },
     },
@@ -39,27 +43,41 @@ const MAX_ITEMS = 100;
 const num = (/** @type {any} */ v) => (typeof v === 'number' && Number.isFinite(v) ? Math.round(v * 1000) / 1000 : null);
 const pos = (/** @type {any} */ v) => (num(v) != null && v > 0 ? num(v) : undefined);
 
+const sum = (/** @type {number[]} */ xs) => xs.reduce((a, b) => a + b, 0);
+const near = (/** @type {number} */ a, /** @type {number} */ b) => Math.abs(a - b) < 0.015;
+
 // What the client gets: { items: [{ name, qty, price }], service?: { percent? | amount? }, tax?, total?, currency? }
 // Names fit the 40-character item field; discounts keep their negative price so the client can report them
 /** @param {any} raw @returns {import('../../src/lib/scan.ts').Receipt} */
 export function cleanReceipt(raw) {
-  const items = [];
+  /** @type {{ name: string, qty: number, price: number, each: number | null }[]} */
+  const lines = [];
   for (const it of Array.isArray(raw?.items) ? raw.items : []) {
     const name = typeof it?.name === 'string' ? it.name.replace(/\s+/g, ' ').trim().slice(0, 40).trim() : '';
     const price = num(it?.price);
     if (!name || price == null) continue;
     const qty = Number.isInteger(it.qty) && it.qty > 1 && it.qty < 1000 ? it.qty : 1;
-    items.push({ name, qty, price });
-    if (items.length === MAX_ITEMS) break;
+    lines.push({ name, qty, price, each: num(it.unitPrice) });
+    if (lines.length === MAX_ITEMS) break;
   }
   /** @type {import('../../src/lib/scan.ts').Receipt} */
-  const out = { items };
+  const out = { items: [] };
   const percent = pos(raw?.service?.percent), amount = pos(raw?.service?.amount);
   if (percent != null && percent <= 100) out.service = { percent };
   else if (amount != null) out.service = { amount };
   const tax = pos(raw?.tax), total = pos(raw?.total);
   if (tax != null) out.tax = tax;
   if (total != null) out.total = total;
+
+  // The model sometimes reads the unit price column as the line total (4 × 9.50 as 9.50). When qty × unitPrice
+  // adds up to the receipt's total and the prices as read don't, use qty × unitPrice
+  const each = lines.map((l) => (l.each != null && l.qty > 1 ? Math.round(l.each * l.qty * 100) / 100 : l.price));
+  if (total != null && each.some((v, i) => v !== lines[i].price)) {
+    const extra = (/** @type {number} */ s) => (amount != null && percent == null ? amount : 0) + (percent != null ? (s * percent) / 100 : 0) + (tax ?? 0);
+    const asRead = sum(lines.map((l) => l.price)), fixed = sum(each);
+    if (near(fixed + extra(fixed), total) && !near(asRead + extra(asRead), total)) lines.forEach((l, i) => (l.price = each[i]));
+  }
+  out.items = lines.map(({ name, qty, price }) => ({ name, qty, price }));
   if (typeof raw?.currency === 'string' && /^[A-Z]{3}$/.test(raw.currency.trim().toUpperCase())) out.currency = raw.currency.trim().toUpperCase();
   return out;
 }

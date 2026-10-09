@@ -23,6 +23,21 @@ describe('cleanReceipt', () => {
 		]);
 	});
 
+	// La Fabrica, Alicante: Precio and Importe columns, read as 4 × Croquetas at 9.50 instead of 38.00
+	it('uses qty × unit price when that matches the total and the prices as read don’t', () => {
+		const items = [
+			{ name: 'Agua', qty: 1, unitPrice: 2.5, price: 2.5 },
+			{ name: 'Croquetas', qty: 4, unitPrice: 9.5, price: 9.5 },
+			{ name: 'Patatas bravas', qty: 2, unitPrice: 7.5, price: 7.5 }
+		];
+		expect(cleanReceipt({ items, total: 55.5 }).items.map((it) => it.price)).toEqual([2.5, 38, 15]);
+		// With a 10% service on top
+		expect(cleanReceipt({ items, service: { percent: 10 }, total: 61.05 }).items.map((it) => it.price)).toEqual([2.5, 38, 15]);
+		// Left alone when the prices as read already add up, or there's no total to check against
+		expect(cleanReceipt({ items, total: 19.5 }).items.map((it) => it.price)).toEqual([2.5, 9.5, 7.5]);
+		expect(cleanReceipt({ items }).items.map((it) => it.price)).toEqual([2.5, 9.5, 7.5]);
+	});
+
 	it('caps the number of items', () => {
 		expect(cleanReceipt({ items: Array.from({ length: 150 }, () => ({ name: 'a', price: 1 })) }).items).toHaveLength(100);
 	});
