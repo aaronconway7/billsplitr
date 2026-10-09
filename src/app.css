@@ -25,6 +25,7 @@
 	--input: #e4e2dc;
 	--ring: #0b7a5a;
 	--sage: #8aaa86;
+	--paper: #fffef9;
 	/* Cards (rounded-xl) come out at 14px */
 	--radius: 0.625rem;
 }
@@ -49,11 +50,13 @@
 	--input: #2e3239;
 	--ring: #4cc9a0;
 	--sage: #4f6b52;
+	--paper: #23262b;
 }
 
 @theme inline {
 	--font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 	--color-sage: var(--sage);
+	--color-paper: var(--paper);
 	--color-ring: var(--ring);
 	--color-input: var(--input);
 	--color-border: var(--border);
@@ -101,5 +104,23 @@
 	html {
 		@apply font-sans;
 		scroll-padding-top: env(safe-area-inset-top, 0px);
+	}
+}
+
+@layer components {
+	/* A till receipt: zig-zag torn top and bottom edges. Wrap it in a drop-shadow, since the mask would clip its own */
+	.receipt {
+		--tooth: 7px;
+		mask:
+			conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(var(--tooth) * 2) var(--tooth) repeat-x,
+			conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--tooth) * 2) var(--tooth) repeat-x,
+			linear-gradient(#000 0 0) center / 100% calc(100% - var(--tooth) * 2 + 2px) no-repeat;
+	}
+	/* Dotted line joining a label to its amount */
+	.leader {
+		@apply mx-1.5 mb-1.5 min-w-4 flex-1 self-end border-b-2 border-dotted border-muted-foreground/30;
+	}
+	.receipt-rule {
+		@apply my-3 border-t border-dashed border-muted-foreground/40;
 	}
 }

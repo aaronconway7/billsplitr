@@ -171,3 +171,28 @@ test('failed saves say so and retry on the next edit', async ({ page }) => {
 	await expect(result(page, 'Dan')).toBeVisible();
 	await expect(result(page, 'Eve')).toBeVisible();
 });
+
+test('copies the receipt as an image, on view links too', async ({ page, browser }) => {
+	const { view } = await share(page);
+	const viewer = await fresh(browser);
+	await open(viewer, view);
+	const button = viewer.getByRole('button', { name: 'Copy image' });
+	await button.click();
+	await toast(viewer, 'Receipt image copied');
+	// A 2× PNG of the receipt, less its interactive bits, with 56px of backdrop all round
+	const size = await viewer.evaluate(async () => {
+		const [it] = await navigator.clipboard.read();
+		const img = await createImageBitmap(await it.getType('image/png'));
+		const el = document.getElementById('receipt')!;
+		const r = el.getBoundingClientRect();
+		let skipped = 0;
+		for (const s of el.querySelectorAll<HTMLElement>('[data-capture="skip"]')) {
+			const cs = getComputedStyle(s);
+			skipped += s.getBoundingClientRect().height + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+		}
+		return { w: img.width - r.width * 2, h: img.height - (r.height - skipped) * 2, skipped };
+	});
+	expect(size.skipped).toBeGreaterThan(0);
+	expect(size.w).toBeCloseTo(224, -1);
+	expect(size.h).toBeCloseTo(224, -1);
+});
