@@ -196,3 +196,19 @@ test('copies the receipt as an image, on view links too', async ({ page, browser
 	expect(size.w).toBeCloseTo(224, -1);
 	expect(size.h).toBeCloseTo(224, -1);
 });
+
+test('on phones, WhatsApp gets the receipt image with the summary as its caption', async ({ page }) => {
+	// A stand-in share sheet that records what it was given
+	await page.addInitScript(() => {
+		navigator.canShare = () => true;
+		navigator.share = async (d) => void ((window as any).shared = { type: d?.files?.[0]?.type, text: d?.text });
+	});
+	await open(page);
+	// With no one on the bill there's no receipt to share
+	await expect(page.getByRole('button', { name: 'Share to WhatsApp' })).toBeDisabled();
+	await sampleBill(page);
+	await page.getByRole('button', { name: 'Share to WhatsApp' }).click();
+	const shared = await page.waitForFunction(() => (window as any).shared).then((h) => h.jsonValue());
+	expect(shared.type).toBe('image/png');
+	expect(shared.text).toMatch(/^🧾 \*Bill split\*\nTotal: \*£52\.80\*[\s\S]*\n\nSee the full split: http:\/\/localhost:\d+\/[0-9a-f-]{36}$/);
+});

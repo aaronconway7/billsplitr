@@ -1,6 +1,7 @@
 import { toast } from 'svelte-sonner';
 import { pack } from './codec.ts';
 import { snapshot } from './editor.svelte.ts';
+import { EDIT_FAIL } from './share.svelte.ts';
 
 const NAME = 'billsplitr-receipt.png';
 
@@ -52,18 +53,20 @@ export const canShareFiles = () => !!navigator.canShare?.({ files: [new File([],
 // A rendered image kept for a second tap when the share sheet refused the first (iOS wants share() soon after the tap)
 let ready: { key: string; blob: Blob } | null = null;
 
-export async function shareReceipt() {
+// On phones a caption can go with the image (WhatsApp sends it as the photo's caption); `again` names the button for a retry
+export async function shareReceipt(caption?: Promise<string>, again = 'Share image') {
 	const key = pack(snapshot());
 	if (canShareFiles()) {
-		const blob = ready?.key === key ? ready.blob : await receiptBlob();
+		const [blob, text] = await Promise.all([ready?.key === key ? ready.blob : receiptBlob(), caption]);
+		if (caption && !text) return void toast(EDIT_FAIL);
 		try {
-			await navigator.share({ files: [new File([blob], NAME, { type: 'image/png' })] });
+			await navigator.share({ files: [new File([blob], NAME, { type: 'image/png' })], ...(text ? { text } : {}) });
 			ready = null;
 		} catch (e) {
 			const name = (e as Error)?.name;
 			if (name === 'NotAllowedError') {
 				ready = { key, blob };
-				toast('Image ready — tap Share image again');
+				toast(`Image ready — tap ${again} again`);
 			} else if (name !== 'AbortError') toast('Sharing failed');
 		}
 		return;

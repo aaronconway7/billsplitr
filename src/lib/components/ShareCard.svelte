@@ -15,23 +15,29 @@
 		copyP(linkUrl(), linkIsEdit() ? 'Edit link copied' : 'Link copied', EDIT_FAIL);
 	}
 
-	function copyWhatsApp() {
-		const b = snapshot(), c = currentSplit(), editable = linkIsEdit();
-		copyP(linkUrl().then((link) => (link ? summary(b, c, link, editable) : '')), 'Summary copied', EDIT_FAIL);
-	}
-
 	// Phones get the share sheet, desktops the clipboard; only known after mount
 	let canShare = $state(false);
 	onMount(() => (canShare = canShareFiles()));
-	let busy = $state(false);
-	async function shareImage() {
-		busy = true;
+	// Which share is being prepared, so its button says so and both wait
+	let busy = $state<'' | 'whatsapp' | 'image'>('');
+	async function busyWhile(which: 'whatsapp' | 'image', p: Promise<void>) {
+		busy = which;
 		try {
-			await shareReceipt();
+			await p;
 		} finally {
-			busy = false;
+			busy = '';
 		}
 	}
+
+	// On phones the receipt image goes too, with the summary as its caption (WhatsApp Web drops text pasted with an image)
+	function copyWhatsApp() {
+		const b = snapshot(), c = currentSplit(), editable = linkIsEdit();
+		const text = linkUrl().then((link) => (link ? summary(b, c, link, editable) : ''));
+		if (canShare) busyWhile('whatsapp', shareReceipt(text, 'Share to WhatsApp'));
+		else copyP(text, 'Summary copied', EDIT_FAIL);
+	}
+
+	const shareImage = () => busyWhile('image', shareReceipt());
 </script>
 
 <Section title="Share">
@@ -45,8 +51,9 @@
 	{/snippet}
 	<div class="flex flex-wrap gap-2 *:flex-[1_1_150px]">
 		<Button size="lg" onclick={copyLink}>Copy link</Button>
-		<Button size="lg" variant="outline" onclick={copyWhatsApp}>Copy for WhatsApp</Button>
-		<Button size="lg" variant="outline" disabled={busy || !app.bill.p.length} onclick={shareImage}><ImageIcon />{busy ? 'Preparing…' : canShare ? 'Share image' : 'Copy image'}</Button>
+		<!-- On phones it shares the image, so like the image button it needs someone on the bill -->
+		<Button size="lg" variant="outline" disabled={!!busy || (canShare && !app.bill.p.length)} onclick={copyWhatsApp}>{busy === 'whatsapp' ? 'Preparing…' : canShare ? 'Share to WhatsApp' : 'Copy for WhatsApp'}</Button>
+		<Button size="lg" variant="outline" disabled={!!busy || !app.bill.p.length} onclick={shareImage}><ImageIcon />{busy === 'image' ? 'Preparing…' : canShare ? 'Share image' : 'Copy image'}</Button>
 	</div>
 	<p class="mt-2.5 text-sm text-muted-foreground">{app.ro ? 'This shared bill is read-only.' : 'Links expire 30 days after the last edit.'}</p>
 	<p class="mt-1 text-sm text-muted-foreground" class:hidden={app.mode !== 'edit'} aria-live="polite">{app.saveStatus}</p>
