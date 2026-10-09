@@ -3,7 +3,7 @@
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { curDec, curMeta, curStep, money } from '#lib/currencies.ts';
-	import { addItem, app, assignAll, removeItem, toggleShare } from '#lib/state.svelte.ts';
+	import { addItem, app, assignAll, removeItem, toggleShare } from '#lib/editor.svelte.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
 
@@ -13,7 +13,7 @@
 	const cur = $derived(curMeta(app.bill.c));
 
 	function add() {
-		if (!addItem(name, amount == null ? '' : String(amount))) return;
+		if (!addItem(name, amount)) return;
 		name = '';
 		amount = null;
 		input?.focus();
@@ -43,17 +43,12 @@
 						</span>
 					</div>
 					<div class="mt-2 flex flex-wrap gap-1.5">
-						{#if app.ro}
-							{#each app.bill.p as p, k}
-								{#if it.s.includes(k)}<Chip on>{p}</Chip>{/if}
-							{/each}
-							{#if !app.bill.p.some((_, k) => it.s.includes(k))}<span class="text-sm text-muted-foreground">Unassigned</span>{/if}
-						{:else}
-							{#each app.bill.p as p, k}
-								<Chip on={it.s.includes(k)} onclick={() => toggleShare(j, k)}>{p}</Chip>
-							{/each}
-							{#if app.bill.p.length > 1}<Chip onclick={() => assignAll(j)}>Everyone</Chip>{/if}
-						{/if}
+						<!-- Read-only bills show just who's sharing -->
+						{#each app.bill.p as p, k}
+							{#if !app.ro || it.s.includes(k)}<Chip on={it.s.includes(k)} onclick={() => toggleShare(j, k)}>{p}</Chip>{/if}
+						{/each}
+						{#if app.ro && !app.bill.p.some((_, k) => it.s.includes(k))}<span class="text-sm text-muted-foreground">Unassigned</span>{/if}
+						{#if !app.ro && app.bill.p.length > 1}<Chip onclick={() => assignAll(j)}>Everyone</Chip>{/if}
 					</div>
 				</li>
 			{/each}

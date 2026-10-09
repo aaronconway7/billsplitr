@@ -2,6 +2,8 @@ import type { Bill } from './bill.ts';
 
 // Everything in pence. Shared items split evenly, with leftover pennies going to the first sharers;
 // service is shared in proportion to what each person ordered, with any rounding difference going to the top spender.
+export type Split = ReturnType<typeof calc>;
+
 export function calc(b: Bill) {
 	const n = b.p.length;
 	const own = b.p.map(() => 0);

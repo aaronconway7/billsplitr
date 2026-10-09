@@ -1,4 +1,5 @@
 import type { Bill, Item } from './bill.ts';
+import { curOk } from './currencies.ts';
 
 // The share string format is stored in blobs and old #hash links, so it must not change:
 // base64url JSON of [p, [[n,a,s]...], sc, pd, c], or 'z' + base64url of the same JSON deflate-raw compressed.
@@ -96,4 +97,15 @@ export function norm(o: unknown): Bill | null {
 		pd: Number.isInteger(pdn) ? pdn : -1,
 		c: c as string
 	};
+}
+
+// A bill from JSON, with an unknown currency replaced by GBP; null if it isn't a bill
+export function parseBill(txt: string | null | undefined): Bill | null {
+	try {
+		const b = txt ? norm(JSON.parse(txt)) : null;
+		if (b && !curOk(b.c)) b.c = 'GBP';
+		return b;
+	} catch {
+		return null;
+	}
 }

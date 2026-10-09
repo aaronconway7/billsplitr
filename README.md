@@ -32,14 +32,15 @@ Then open http://localhost:8888. This runs the SvelteKit dev server behind Netli
 
 `npm run dev` runs the app on its own at http://localhost:5173. Without the functions, "Copy link" falls back to a compressed long link (a snapshot) and edit links aren't available.
 
-Other scripts: `npm test` (unit tests), `npm run check` (type-check) and `npm run build` (static site in `build/`).
+Other scripts: `npm test` (unit tests), `npm run test:e2e` (Playwright end-to-end tests; starts `netlify dev` if it isn't running, and needs `npx playwright install chromium` once), `npm run check` (type-check) and `npm run build` (static site in `build/`).
 
 ## Project files
 
 - `src/routes/[...path=bill]/+page.svelte` — the page; `src/params.ts` limits it to `/`, `/<uuid>` and `/e/<uuid>`
 - `src/lib/components/` — the UI, one component per card; `ui/` holds the shadcn-svelte components (add more with `npx shadcn-svelte@latest add <name>`)
-- `src/lib/state.svelte.ts` — bill state, editing, sharing, saving and loading
-- `src/lib/codec.ts` — the share format (must stay compatible with existing links), `split.ts` — the maths, `currencies.ts`
+- `src/lib/editor.svelte.ts` — the bill's state, the current split and the editing actions
+- `src/lib/share.svelte.ts` — share links, saving to the server, loading a bill and starting a new one; `storage.ts` — localStorage
+- `src/lib/codec.ts` — the share format (must stay compatible with existing links), `split.ts` — the maths, `summary.ts` — the WhatsApp text, `currencies.ts`
 - `src/app.html` — page head and meta tags; `src/app.css` — Tailwind setup and the brand theme (shadcn colour tokens for light and dark)
 - `netlify/functions/` — create (`POST /api/bills`), save (`PUT /api/bills/<editId>`), the shared-bill page (`/<viewId>`, `/e/<editId>`, which embeds the bill in `build/index.html`) and the daily expiry job (`expire.mjs`)
 - `netlify/lib/bills.mjs` — Netlify Blobs stores and validation shared by the functions

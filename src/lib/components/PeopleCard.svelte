@@ -2,7 +2,7 @@
 	import XIcon from '@lucide/svelte/icons/x';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
-	import { addPerson, app, removePerson } from '#lib/state.svelte.ts';
+	import { addPerson, app, removePerson } from '#lib/editor.svelte.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
 
