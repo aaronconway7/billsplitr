@@ -13,8 +13,9 @@ export default async (req, context) => {
   const page = await fetch(new URL('/', url));
   if (!page.ok) return Response.redirect(new URL('/#' + bill.d, url), 302);
   const vars = { SHARED: bill.d, VIEW_ID: viewId, EDIT_ID: editId };
-  const inject = '<script>' + Object.entries(vars).map(([k, v]) => 'var ' + k + '=' + JSON.stringify(v) + ';').join('') + '</script>\n<script>';
-  return new Response((await page.text()).replace('<script>', inject), {
+  // Read by boot() in src/lib/state.svelte.ts
+  const inject = '<script>' + Object.entries(vars).map(([k, v]) => 'var ' + k + '=' + JSON.stringify(v) + ';').join('') + '</script>\n</head>';
+  return new Response((await page.text()).replace('</head>', inject), {
     headers: {
       'content-type': 'text/html; charset=utf-8',
       // Bills can be edited, so always fetch the latest
