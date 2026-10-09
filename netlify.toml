@@ -2,3 +2,7 @@
   command = "npm run build"
   publish = "build"
   functions = "netlify/functions"
+
+# SvelteKit 3 needs Node 22.17+; "22" picks the latest 22.x
+[build.environment]
+  NODE_VERSION = "22"
