@@ -8,14 +8,40 @@ export type Receipt = {
 	currency?: string;
 };
 
+// Why scanning is unavailable: Gemini's free quota is used up for the day or the minute (until when), or there's no API key
+export type Block = { why: 'day' | 'minute' | 'off'; until?: number };
+
+export function blockMessage({ why, until = 0 }: Block) {
+	if (why === 'off') return "Receipt scanning isn't set up here";
+	if (why === 'minute') return 'Too many receipt scans just now, try again in a minute';
+	const at = new Date(until), time = at.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+	const day = at.toDateString() === new Date().toDateString() ? '' : 'tomorrow ';
+	return `Out of free receipt scans for today. They're back ${day}at ${time}`;
+}
+
 // What the user is told when a scan fails, by status
 const FAIL: Record<number, string> = {
-	404: "Receipt scanning isn't set up here",
-	429: 'Out of receipt scans for now, try again later',
-	503: "Receipt scanning isn't set up here",
 	504: 'The receipt took too long to read, try again'
 };
-export class ScanError extends Error {}
+export class ScanError extends Error {
+	constructor(message: string, readonly block?: Block) {
+		super(message);
+	}
+}
+const blockError = (b: Block) => new ScanError(blockMessage(b), b);
+
+// Asked when the page loads; anything unexpected counts as available, and the scan itself will say
+export async function scanStatus(): Promise<Block | null> {
+	try {
+		const r = await fetch('/api/scan', { signal: AbortSignal.timeout(5000) });
+		// Without the Netlify functions (npm run dev)
+		if (r.status === 404) return { why: 'off' };
+		const s = await r.json();
+		return s.ok === false && ['day', 'minute', 'off'].includes(s.why) ? { why: s.why, until: s.until } : null;
+	} catch {
+		return null;
+	}
+}
 
 // Phone photos are several MB; a long edge of 1600px keeps receipt text readable at a few hundred KB
 const EDGE = 1600;
@@ -48,6 +74,12 @@ export async function scanReceipt(file: Blob): Promise<Receipt> {
 		});
 	} catch {
 		throw new ScanError("Couldn't reach the scanner, check your connection");
+	}
+	if (r.status === 404 || r.status === 503) throw blockError({ why: 'off' });
+	// Netlify's own per-visitor rate limit has no body, so counts as a minute
+	if (r.status === 429) {
+		const b = await r.json().catch(() => null);
+		throw blockError(b?.why === 'day' || b?.why === 'minute' ? b : { why: 'minute', until: Date.now() + 60_000 });
 	}
 	if (!r.ok) throw new ScanError(FAIL[r.status] ?? "Couldn't read that receipt");
 	return r.json();

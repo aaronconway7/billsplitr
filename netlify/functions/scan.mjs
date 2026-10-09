@@ -1,16 +1,33 @@
-import { cleanReceipt, MODEL, PROMPT, SCHEMA } from '../lib/receipt.mjs';
+import { getStore } from '@netlify/blobs';
+import { cleanReceipt, MODEL, PROMPT, quotaBlock, SCHEMA } from '../lib/receipt.mjs';
 
 // The client shrinks photos to a few hundred KB, so anything near this is not one of ours
 const MAX = 4_000_000;
 const MIME = /^image\/(jpeg|png|webp)$/;
 const B64 = /^[A-Za-z0-9+/]+={0,2}$/;
 
-// Read the items off a receipt photo: { image: base64, mime } -> cleanReceipt's result
-// 429 when Gemini's free quota is used up, 504 when it's too slow, 502 (saying why) for anything else it gets wrong
+// When Gemini's free quota runs out, everyone's scan button is disabled until it resets: { why, until }
+const quota = () => getStore({ name: 'scan', consistency: 'strong' });
+const blocked = async () => {
+  const b = await quota().get('blocked', { type: 'json' });
+  return b && b.until > Date.now() ? b : null;
+};
+const outOfScans = (b) => Response.json(b, { status: 429 });
+
+// GET: whether scanning is available, { ok } or { ok: false, why, until }
+// POST: read the items off a receipt photo: { image: base64, mime } -> cleanReceipt's result
+// 429 { why, until } when Gemini's free quota is used up, 504 when it's too slow, 502 (saying why) for anything else
 export default async (req) => {
-  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   const key = process.env.GEMINI_API_KEY;
+  if (req.method === 'GET') {
+    if (!key) return Response.json({ ok: false, why: 'off' });
+    const b = await blocked();
+    return Response.json(b ? { ok: false, ...b } : { ok: true });
+  }
+  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   if (!key) return new Response('Scanning is not set up', { status: 503 });
+  const b = await blocked();
+  if (b) return outOfScans(b);
   const text = await req.text();
   if (text.length > MAX) return new Response('Too large', { status: 413 });
   let image, mime;
@@ -46,7 +63,12 @@ export default async (req) => {
     if (attempt || (r.status !== 500 && r.status !== 503) || end - Date.now() < 15_000) break;
     console.error('Gemini', r.status, 'retrying');
   }
-  if (r.status === 429) return new Response('Out of scans for now', { status: 429 });
+  if (r.status === 429) {
+    const b = quotaBlock(await r.json().catch(() => null));
+    console.error('Gemini quota', b);
+    await quota().setJSON('blocked', b);
+    return outOfScans(b);
+  }
   if (!r.ok) {
     console.error('Gemini', r.status, await r.text());
     return new Response(`Scan failed (Gemini ${r.status})`, { status: 502 });

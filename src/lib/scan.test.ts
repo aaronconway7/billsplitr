@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { cleanReceipt } from '../../netlify/lib/receipt.mjs';
+import { cleanReceipt, quotaBlock } from '../../netlify/lib/receipt.mjs';
 import { emptyBill } from './bill.ts';
 import { addScanned, app } from './editor.svelte.ts';
 
@@ -38,6 +38,30 @@ describe('cleanReceipt', () => {
 		expect(cleanReceipt({ items: [], service: { percent: 150, amount: 5 } }).service).toEqual({ amount: 5 });
 		expect(cleanReceipt({ service: { amount: -1 }, tax: 0, total: 'lots', currency: 'Euro' })).toEqual({ items: [] });
 		expect(cleanReceipt(null)).toEqual({ items: [] });
+	});
+});
+
+describe('quotaBlock', () => {
+	const err = (quotaId: string, retryDelay?: string) => ({
+		error: {
+			code: 429,
+			details: [
+				{ '@type': 'type.googleapis.com/google.rpc.QuotaFailure', violations: [{ quotaId }] },
+				...(retryDelay ? [{ '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay }] : [])
+			]
+		}
+	});
+
+	it('blocks a used-up daily quota until midnight Pacific time', () => {
+		// 15:00 UTC in October is 08:00 in California, so 16 hours to go
+		const now = Date.UTC(2026, 9, 9, 15, 0, 0);
+		expect(quotaBlock(err('GenerateRequestsPerDayPerProjectPerModel-FreeTier', '20s'), now)).toEqual({ why: 'day', until: Date.UTC(2026, 9, 10, 7, 0, 0) });
+	});
+
+	it('blocks a per-minute quota for as long as Gemini says', () => {
+		expect(quotaBlock(err('GenerateRequestsPerMinutePerProjectPerModel-FreeTier', '37.4s'), 0)).toEqual({ why: 'minute', until: 38000 });
+		expect(quotaBlock(err('GenerateContentInputTokensPerModelPerMinute-FreeTier'), 0)).toEqual({ why: 'minute', until: 60000 });
+		expect(quotaBlock(null, 0)).toEqual({ why: 'minute', until: 60000 });
 	});
 });
 
