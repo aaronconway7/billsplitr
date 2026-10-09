@@ -58,7 +58,8 @@ export async function shareReceipt(caption?: Promise<string>, again = 'Share ima
 	const key = pack(snapshot());
 	if (canShareFiles()) {
 		const [blob, text] = await Promise.all([ready?.key === key ? ready.blob : receiptBlob(), caption]);
-		if (caption && !text) return void toast(EDIT_FAIL);
+		// No link for the caption (the edit link needs the server): say so, but still send the image
+		if (caption && !text) toast(EDIT_FAIL);
 		try {
 			await navigator.share({ files: [new File([blob], NAME, { type: 'image/png' })], ...(text ? { text } : {}) });
 			ready = null;

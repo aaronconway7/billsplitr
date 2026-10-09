@@ -213,3 +213,18 @@ test('on phones, one Share button sends the receipt image with the summary as it
 	expect(shared.type).toBe('image/png');
 	expect(shared.text).toMatch(/^🧾 \*Bill split\*\nTotal: \*£52\.80\*[\s\S]*\n\nSee the full split: http:\/\/localhost:\d+\/[0-9a-f-]{36}$/);
 });
+
+test('on phones, Share still sends the image when the edit link can’t be made', async ({ page }) => {
+	await page.addInitScript(() => {
+		navigator.canShare = () => true;
+		navigator.share = async (d) => void ((window as any).shared = { type: d?.files?.[0]?.type, text: d?.text ?? null });
+	});
+	await page.route('**/api/bills', (r) => r.abort());
+	await open(page);
+	await sampleBill(page);
+	await page.getByRole('switch', { name: 'Allow editing' }).click();
+	await page.getByRole('button', { name: 'Share', exact: true }).click();
+	await toast(page, 'Couldn’t create an edit link. Try again in a moment.');
+	const shared = await page.waitForFunction(() => (window as any).shared).then((h) => h.jsonValue());
+	expect(shared).toEqual({ type: 'image/png', text: null });
+});
