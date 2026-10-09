@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="./og-image.jpg" alt="BillSplitr preview" width="1200" />
+  <img src="./static/og-image.jpg" alt="BillSplitr preview" width="1200" />
 </p>
 
 A clean, no-fuss way to split a bill. Add people, assign items, adjust the service/tip, and instantly see who owes what.
@@ -18,31 +18,29 @@ Live demo: https://usebillsplitr.netlify.app/
 - Assign items to specific people
 - Optional service/tip percentage
 - Short shareable links: read-only view links and edit links, always showing the latest version
-- Works in the browser, with a small Netlify backend for shared links
+- A SvelteKit single-page app, with a small Netlify backend for shared links
 - Shared links expire 30 days after the last edit (a daily scheduled function deletes them)
 
 ## Run locally
-
-```bash
-python3 -m http.server 8000
-```
-
-Then open http://localhost:8000
-
-Shared links (`/<uuid>` to view, `/e/<uuid>` to edit) need the Netlify functions. To test them locally:
 
 ```bash
 npm install
 npx netlify-cli dev
 ```
 
-Then open http://localhost:8888. Under the plain Python server, "Copy view link" falls back to a compressed long link (a snapshot) and edit links aren't available.
+Then open http://localhost:8888. This runs the SvelteKit dev server behind Netlify, so shared links (`/<uuid>` to view, `/e/<uuid>` to edit) and their functions work too.
+
+`npm run dev` runs the app on its own at http://localhost:5173. Without the functions, "Copy link" falls back to a compressed long link (a snapshot) and edit links aren't available.
+
+Other scripts: `npm test` (unit tests), `npm run check` (type-check) and `npm run build` (static site in `build/`).
 
 ## Project files
 
-- `index.html` — app UI and logic
-- `netlify/functions/` — create (`POST /api/bills`), save (`PUT /api/bills/<editId>`), the shared-bill page (`/<viewId>`, `/e/<editId>`) and the daily expiry job (`expire.mjs`)
+- `src/routes/[...path=bill]/+page.svelte` — the page; `src/params.ts` limits it to `/`, `/<uuid>` and `/e/<uuid>`
+- `src/lib/components/` — the UI, one component per card
+- `src/lib/state.svelte.ts` — bill state, editing, sharing, saving and loading
+- `src/lib/codec.ts` — the share format (must stay compatible with existing links), `split.ts` — the maths, `currencies.ts`
+- `src/app.html` — page head and meta tags; `src/app.css` — styles
+- `netlify/functions/` — create (`POST /api/bills`), save (`PUT /api/bills/<editId>`), the shared-bill page (`/<viewId>`, `/e/<editId>`, which embeds the bill in `build/index.html`) and the daily expiry job (`expire.mjs`)
 - `netlify/lib/bills.mjs` — Netlify Blobs stores and validation shared by the functions
-- `og-image.jpg` — social preview image
-- `favicon.*` and `apple-touch-icon.png` — brand assets
-- `oembed.json` — embed metadata
+- `static/` — social preview image, favicons and `oembed.json`

@@ -3,3 +3,6 @@ node_modules/
 .netlify/
 .context/
 deno.lock
+/.svelte-kit/
+/build/
+vite.config.ts.timestamp-*
