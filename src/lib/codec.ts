@@ -36,7 +36,8 @@ function u8d(s: string) {
 	return u;
 }
 
-export const pack = (b: Bill) => JSON.stringify([b.p, b.i.map((it) => [it.n, it.a, it.s]), b.sc, b.pd, b.c]);
+// A fixed-amount service adds a trailing 1; % bills pack exactly as before
+export const pack = (b: Bill) => JSON.stringify([b.p, b.i.map((it) => [it.n, it.a, it.s]), b.sc, b.pd, b.c, ...(b.sm ? [1] : [])]);
 
 export function enc(b: Bill) {
 	try {
@@ -81,12 +82,12 @@ function normItem(it: unknown): Item {
 
 // Accepts the packed array form and the older { p, i, sc, pd, c } object form; null if neither
 export function norm(o: unknown): Bill | null {
-	let p: unknown, i: unknown, sc: unknown, pd: unknown, c: unknown;
+	let p: unknown, i: unknown, sc: unknown, pd: unknown, c: unknown, sm: unknown;
 	if (Array.isArray(o) && Array.isArray(o[0]) && Array.isArray(o[1])) {
-		[p, i, sc, pd] = o;
+		[p, i, sc, pd, , sm] = o;
 		c = typeof o[4] === 'string' ? o[4] : 'GBP';
 	} else if (o && typeof o === 'object' && Array.isArray((o as Bill).p) && Array.isArray((o as Bill).i)) {
-		({ p, i, sc, pd } = o as Bill);
+		({ p, i, sc, pd, sm } = o as Bill);
 		c = (o as Bill).c || 'GBP';
 	} else return null;
 	const scn = Number(sc), pdn = Number(pd);
@@ -95,7 +96,8 @@ export function norm(o: unknown): Bill | null {
 		i: (i as unknown[]).map(normItem),
 		sc: isFinite(scn) && scn >= 0 ? scn : 0,
 		pd: Number.isInteger(pdn) ? pdn : -1,
-		c: c as string
+		c: c as string,
+		...(sm === 1 && { sm: 1 as const })
 	};
 }
 

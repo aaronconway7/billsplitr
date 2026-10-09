@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Bill } from './bill.ts';
-import { b64e, dec, enc, encZ, norm, parseBill } from './codec.ts';
+import { b64e, dec, enc, encZ, norm, pack, parseBill } from './codec.ts';
 
 const bill: Bill = {
 	p: ['Ann', 'Bob', 'Zoë'],
@@ -33,6 +33,14 @@ describe('codec', () => {
 
 	it('round-trips', async () => {
 		expect(await decode(await encZ(bill))).toEqual(bill);
+	});
+
+	it('round-trips a fixed service, and ignores anything else in its place', async () => {
+		const fixed: Bill = { ...bill, sc: 14.63, sm: 1 };
+		expect(await decode(await encZ(fixed))).toStrictEqual(fixed);
+		expect(norm(JSON.parse(pack(bill)))).not.toHaveProperty('sm');
+		expect(norm([['A'], [], 5, -1, 'GBP', 'yes'])).not.toHaveProperty('sm');
+		expect(norm({ ...fixed })).toHaveProperty('sm', 1);
 	});
 
 	it('accepts the old object format', async () => {

@@ -67,7 +67,9 @@ test('view links are read-only', async ({ page, browser }) => {
 	await expect(viewer.getByText('This shared bill is read-only.')).toBeVisible();
 	await expect(viewer.getByPlaceholder('Add a name')).toHaveCount(0);
 	await expect(viewer.getByPlaceholder('Item (e.g. Margherita)')).toHaveCount(0);
-	await expect(viewer.getByPlaceholder('Custom %')).toHaveCount(0);
+	await expect(viewer.getByRole('slider')).toHaveCount(0);
+	await expect(viewer.getByLabel('Service amount')).toHaveCount(0);
+	await expect(viewer.getByLabel(/^(Name of|Price of|Item name)/)).toHaveCount(0);
 	await expect(viewer.getByRole('switch')).toHaveCount(0);
 	await expect(viewer.getByLabel('Currency')).toBeDisabled();
 	await expect(viewer.getByRole('button', { name: /Remove/ })).toHaveCount(0);

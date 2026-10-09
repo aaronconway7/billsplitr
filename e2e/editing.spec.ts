@@ -14,7 +14,7 @@ test('splits a bill', async ({ page }) => {
 	await sampleBill(page);
 	await expect(result(page, 'Ann')).toContainText('£16.25');
 	await expect(result(page, 'Ann')).toContainText('£18.28');
-	await expect(result(page, 'Bob')).toContainText('£16.25 · paid');
+	await expect(result(page, 'Bob')).toContainText('£16.25 + £2.03 service · paid');
 	await expect(result(page, 'Bob')).toContainText('£18.28');
 	await expect(result(page, 'Cat')).toContainText('£10.00');
 	await expect(result(page, 'Cat')).toContainText('£11.25');
@@ -41,18 +41,79 @@ test('toggles sharers, service and payer', async ({ page }) => {
 	await expect(page.getByText('Total£47.49')).toBeVisible();
 });
 
-test('custom service, clamped to 0–100', async ({ page }) => {
+test('service percentage slider', async ({ page }) => {
 	await sampleBill(page);
-	const custom = page.getByPlaceholder('Custom %');
-	await custom.fill('20');
-	await custom.blur();
+	const slider = page.getByRole('slider');
+	await expect(slider).toHaveAttribute('aria-valuenow', '12.5');
+	// Each arrow key is one 0.5% step
+	await slider.focus();
+	for (let k = 0; k < 15; k++) await slider.press('ArrowRight');
 	await expect(page.getByText('Service / tip (20%)£8.50')).toBeVisible();
-	await expect(custom).toHaveValue('20');
+	await expect(page.getByText('20%', { exact: true })).toBeVisible();
 	await expect(page.getByRole('button', { name: '12.5%' })).toHaveAttribute('aria-pressed', 'false');
-	await custom.fill('150');
-	await custom.blur();
+	await page.getByRole('button', { name: '10%' }).click();
+	await expect(slider).toHaveAttribute('aria-valuenow', '10');
+});
+
+test('edits items in place', async ({ page }) => {
+	await sampleBill(page);
+	const price = page.getByLabel('Price of Wine');
+	await price.fill('36');
+	await price.blur();
+	await expect(result(page, 'Cat')).toContainText('£12.00');
+	await expect(page.getByText('Items£53.49')).toBeVisible();
+	// A cleared or blank field goes back to what it was
+	await price.fill('');
+	await price.blur();
+	await expect(price).toHaveValue('36.00');
+	const name = item(page, 'Wine').getByLabel('Item name');
+	await name.fill('Red wine');
+	await name.blur();
+	await expect(page.getByLabel('Price of Red wine')).toHaveValue('36.00');
+	const renamed = item(page, 'Red wine').getByLabel('Item name');
+	await renamed.fill(' ');
+	await renamed.blur();
+	await expect(renamed).toHaveValue('Red wine');
+});
+
+test('renames people in place', async ({ page }) => {
+	await sampleBill(page);
+	const ann = page.getByLabel('Name of Ann');
+	await ann.fill('Annie');
+	await ann.press('Enter');
+	await expect(result(page, 'Annie')).toContainText('£18.28');
+	await expect(item(page, 'Pizza').getByRole('button', { name: 'Annie' })).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.getByText('Annie pays Bob £18.28')).toBeVisible();
+	await page.getByLabel('Name of Annie').fill('');
+	await page.getByLabel('Name of Annie').blur();
+	await expect(page.getByLabel('Name of Annie')).toHaveValue('Annie');
+});
+
+test('fixed service amount', async ({ page }) => {
+	await sampleBill(page);
+	await page.getByRole('button', { name: 'Amount' }).click();
+	await expect(page.getByRole('button', { name: '12.5%' })).toHaveCount(0);
+	await expect(page.getByText(/Service \/ tip/)).toHaveCount(0);
+	const amount = page.getByLabel('Service amount');
+	await amount.fill('5');
+	await amount.blur();
+	await expect(page.getByText('Service / tip£5.00')).toBeVisible();
+	await expect(page.getByText('Total£52.49')).toBeVisible();
+	// £5 shared by what each ordered: £1.91, £1.91, £1.18
+	await expect(result(page, 'Ann')).toContainText('£16.25 + £1.91 service');
+	await expect(result(page, 'Ann')).toContainText('£18.16');
+	await expect(result(page, 'Cat')).toContainText('£11.18');
+	await page.reload();
+	await expect(page.getByLabel('Service amount')).toHaveValue('5');
+	// Clearing a loaded amount stays in Amount mode
+	await page.getByLabel('Service amount').fill('');
+	await page.getByLabel('Service amount').blur();
+	await expect(page.getByLabel('Service amount')).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Amount' })).toHaveAttribute('aria-pressed', 'true');
+	await expect(page.getByText('Total£47.49')).toBeVisible();
+	await page.getByRole('button', { name: 'Percentage' }).click();
 	await expect(page.getByRole('button', { name: 'None' })).toHaveAttribute('aria-pressed', 'true');
-	await expect(custom).toHaveValue('');
+	await expect(page.getByText('Total£47.49')).toBeVisible();
 });
 
 test('removing a person keeps everyone else’s shares and the payer', async ({ page }) => {
@@ -62,7 +123,7 @@ test('removing a person keeps everyone else’s shares and the payer', async ({ 
 	await expect(item(page, 'Wine').getByRole('button', { name: 'Bob' })).toHaveAttribute('aria-pressed', 'true');
 	await expect(item(page, 'Wine').getByRole('button', { name: 'Cat' })).toHaveAttribute('aria-pressed', 'true');
 	await expect(payerChips(page).getByRole('button', { name: 'Bob' })).toHaveAttribute('aria-pressed', 'true');
-	await expect(result(page, 'Bob')).toContainText('£27.50 · paid');
+	await expect(result(page, 'Bob')).toContainText('£27.50 + £3.44 service · paid');
 	// Removing the payer clears it
 	await page.getByRole('button', { name: 'Remove Bob' }).click();
 	await expect(page.getByText(/· paid/)).toHaveCount(0);
@@ -102,11 +163,13 @@ test('currencies use their own decimals', async ({ page }) => {
 		await page.getByRole('option', { name: new RegExp(code) }).click();
 	};
 	await pick('JPY');
-	await expect(item(page, 'Sushi')).toContainText('¥20');
+	await expect(page.getByLabel('Price of Sushi')).toHaveValue('20');
+	await expect(item(page, 'Sushi')).toContainText('¥');
 	await expect(page.locator('input[type=number]').first()).toHaveAttribute('step', '1');
 	await expect(page.locator('input[type=number]').first()).toHaveAttribute('placeholder', '¥');
 	await pick('KWD');
-	await expect(item(page, 'Sushi')).toContainText('KD20.000');
+	await expect(page.getByLabel('Price of Sushi')).toHaveValue('20.000');
+	await expect(page.getByLabel('Price of Sushi')).toHaveAttribute('step', '0.001');
 	await expect(page.locator('input[type=number]').first()).toHaveAttribute('step', '0.001');
 });
 

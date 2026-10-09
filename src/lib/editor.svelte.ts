@@ -56,6 +56,20 @@ export function addItem(name: string, amount: number | null | undefined) {
 	return true;
 }
 
+// Blank names are ignored
+export function renamePerson(k: number, name: string) {
+	const v = name.trim();
+	if (!readOnly() && v) app.bill.p[k] = v;
+}
+
+// Leaves a field alone if it's blank (name) or not a valid price
+export function updateItem(j: number, { n, a }: { n?: string; a?: number | null }) {
+	if (readOnly()) return;
+	const it = app.bill.i[j];
+	if (n?.trim()) it.n = n.trim();
+	if (a != null && a >= 0) it.a = a;
+}
+
 export function removeItem(j: number) {
 	if (!readOnly()) app.bill.i.splice(j, 1);
 }
@@ -71,9 +85,13 @@ export function assignAll(j: number) {
 	if (!readOnly()) app.bill.i[j].s = app.bill.p.map((_, k) => k);
 }
 
-// Anything outside 0–100 (or not a number) means no service
-export function setService(v: number) {
-	if (!readOnly()) app.bill.sc = v >= 0 && v <= 100 ? v : 0;
+// A % (fixed false) or an amount. Anything negative, not a number or over 100% means no service
+export function setService(v: number, fixed = false) {
+	if (readOnly()) return;
+	const b = app.bill;
+	b.sc = v >= 0 && (fixed || v <= 100) ? v : 0;
+	if (fixed && b.sc) b.sm = 1;
+	else delete b.sm;
 }
 
 export function togglePayer(k: number) {

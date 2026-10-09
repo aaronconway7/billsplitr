@@ -25,7 +25,11 @@ export async function addItem(page: Page, name: string, amount: string) {
 	await page.locator('input[type=number]').first().press('Enter');
 }
 
-export const item = (page: Page, name: string) => page.getByRole('list', { name: 'Items' }).getByRole('listitem').filter({ hasText: name });
+// Editable items show their name in an input, so match the price field's label too
+export const item = (page: Page, name: string) => {
+	const items = page.getByRole('list', { name: 'Items' }).getByRole('listitem');
+	return items.filter({ hasText: name }).or(items.filter({ has: page.getByLabel(`Price of ${name}`) }));
+};
 export const result = (page: Page, name: string) => page.getByRole('list', { name: 'Who owes what' }).getByRole('listitem').filter({ hasText: name });
 export const payerChips = (page: Page) => page.getByText('Who paid the bill?');
 export const toast = (page: Page, text: string | RegExp) => expect(page.locator('[data-sonner-toast]').filter({ hasText: text })).toBeVisible();

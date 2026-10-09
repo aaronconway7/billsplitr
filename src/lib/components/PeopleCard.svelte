@@ -2,7 +2,7 @@
 	import XIcon from '@lucide/svelte/icons/x';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
-	import { addPerson, app, removePerson } from '#lib/editor.svelte.ts';
+	import { addPerson, app, removePerson, renamePerson } from '#lib/editor.svelte.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
 
@@ -13,6 +13,11 @@
 		if (!addPerson(name)) return;
 		name = '';
 		input?.focus();
+	}
+	// A blank name goes back to what's stored
+	function rename(e: Event & { currentTarget: HTMLInputElement }, k: number) {
+		renamePerson(k, e.currentTarget.value);
+		e.currentTarget.value = app.bill.p[k];
 	}
 </script>
 
@@ -26,8 +31,18 @@
 	<div class="mt-2.5 flex flex-wrap gap-1.5">
 		{#each app.bill.p as p, k}
 			<Chip on>
-				{p}
-				{#if !app.ro}
+				{#if app.ro}
+					{p}
+				{:else}
+					<input
+						value={p}
+						maxlength={20}
+						autocomplete="off"
+						aria-label="Name of {p}"
+						class="field-sizing-content min-w-4 bg-transparent outline-none focus:underline"
+						onchange={(e) => rename(e, k)}
+						onkeydown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+					/>
 					<Button variant="ghost" size="icon-xs" class="-mr-1.5 rounded-full text-muted-foreground" aria-label="Remove {p}" onclick={() => removePerson(k)}><XIcon /></Button>
 				{/if}
 			</Chip>
