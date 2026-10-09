@@ -1,0 +1,17 @@
+{
+  "name": "BillSplitr",
+  "short_name": "BillSplitr",
+  "description": "Split a restaurant bill fairly in seconds. Tap who had what, add service or tip, scan the receipt and share a link. Free, no sign-up.",
+  "lang": "en-GB",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0b7a5a",
+  "background_color": "#f6f5f1",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

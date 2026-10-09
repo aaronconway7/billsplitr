@@ -70,7 +70,7 @@
 				</div>
 				<div class="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
 					Adjust
-					<Slider type="single" min={0} max={25} step={0.5} value={sc} onValueChange={(v) => setService(v)} class="flex-1" />
+					<Slider type="single" thumbLabel="Service percentage" min={0} max={25} step={0.5} value={sc} onValueChange={(v) => setService(v)} class="flex-1" />
 					<span class="w-12 text-right font-semibold text-foreground tabular-nums">{sc}%</span>
 				</div>
 				<p class="mt-2 text-sm text-muted-foreground">Added to the items and shared in proportion to what each person ordered. If the bill already includes service, switch to Amount.</p>

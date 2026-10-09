@@ -20,6 +20,8 @@ export default async (req, context) => {
       'content-type': 'text/html; charset=utf-8',
       // Bills can be edited, so always fetch the latest
       'cache-control': 'no-store',
+      // Shared bills are personal and expire, so keep them out of search results
+      'x-robots-tag': 'noindex',
     },
   });
 };

@@ -2,7 +2,7 @@
   "version": "1.0",
   "type": "link",
   "title": "BillSplitr",
-  "description": "Add the bill, tap who had what, see who owes what. No sign-up.",
+  "description": "Split a restaurant bill fairly in seconds. Tap who had what, add service or tip, scan the receipt and share a link. Free, no sign-up.",
   "provider_name": "BillSplitr",
   "provider_url": "https://usebillsplitr.netlify.app/",
   "thumbnail_url": "https://usebillsplitr.netlify.app/og-image.jpg",
