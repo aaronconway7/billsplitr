@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ImageIcon from '@lucide/svelte/icons/image';
+	import ShareIcon from '@lucide/svelte/icons/share';
 	import { onMount } from 'svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Label } from '#lib/components/ui/label/index.js';
@@ -18,26 +19,27 @@
 	// Phones get the share sheet, desktops the clipboard; only known after mount
 	let canShare = $state(false);
 	onMount(() => (canShare = canShareFiles()));
-	// Which share is being prepared, so its button says so and both wait
-	let busy = $state<'' | 'whatsapp' | 'image'>('');
-	async function busyWhile(which: 'whatsapp' | 'image', p: Promise<void>) {
-		busy = which;
+	let busy = $state(false);
+	async function busyWhile(p: Promise<void>) {
+		busy = true;
 		try {
 			await p;
 		} finally {
-			busy = '';
+			busy = false;
 		}
 	}
 
-	// On phones the receipt image goes too, with the summary as its caption (WhatsApp Web drops text pasted with an image)
-	function copyWhatsApp() {
+	// The summary text, followed by the bill's link ('' if no link could be made)
+	function summaryText() {
 		const b = snapshot(), c = currentSplit(), editable = linkIsEdit();
-		const text = linkUrl().then((link) => (link ? summary(b, c, link, editable) : ''));
-		if (canShare) busyWhile('whatsapp', shareReceipt(text, 'Share to WhatsApp'));
-		else copyP(text, 'Summary copied', EDIT_FAIL);
+		return linkUrl().then((link) => (link ? summary(b, c, link, editable) : ''));
 	}
 
-	const shareImage = () => busyWhile('image', shareReceipt());
+	// Phones: one share sheet with the receipt image and the summary as its caption
+	const shareAll = () => busyWhile(shareReceipt(summaryText(), 'Share'));
+	// Desktops copy them separately, since chat apps drop text pasted along with an image
+	const copySummary = () => copyP(summaryText(), 'Summary copied', EDIT_FAIL);
+	const copyImage = () => busyWhile(shareReceipt());
 </script>
 
 <Section title="Share">
@@ -51,9 +53,12 @@
 	{/snippet}
 	<div class="flex flex-wrap gap-2 *:flex-[1_1_150px]">
 		<Button size="lg" onclick={copyLink}>Copy link</Button>
-		<!-- On phones it shares the image, so like the image button it needs someone on the bill -->
-		<Button size="lg" variant="outline" disabled={!!busy || (canShare && !app.bill.p.length)} onclick={copyWhatsApp}>{busy === 'whatsapp' ? 'Preparing…' : canShare ? 'Share to WhatsApp' : 'Copy for WhatsApp'}</Button>
-		<Button size="lg" variant="outline" disabled={!!busy || !app.bill.p.length} onclick={shareImage}><ImageIcon />{busy === 'image' ? 'Preparing…' : canShare ? 'Share image' : 'Copy image'}</Button>
+		{#if canShare}
+			<Button size="lg" variant="outline" disabled={busy || !app.bill.p.length} onclick={shareAll}><ShareIcon />{busy ? 'Preparing…' : 'Share'}</Button>
+		{:else}
+			<Button size="lg" variant="outline" onclick={copySummary}>Copy summary</Button>
+			<Button size="lg" variant="outline" disabled={busy || !app.bill.p.length} onclick={copyImage}><ImageIcon />{busy ? 'Preparing…' : 'Copy image'}</Button>
+		{/if}
 	</div>
 	<p class="mt-2.5 text-sm text-muted-foreground">{app.ro ? 'This shared bill is read-only.' : 'Links expire 30 days after the last edit.'}</p>
 	<p class="mt-1 text-sm text-muted-foreground" class:hidden={app.mode !== 'edit'} aria-live="polite">{app.saveStatus}</p>

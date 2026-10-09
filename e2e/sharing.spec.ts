@@ -36,7 +36,7 @@ test('copy link stores the bill and moves it to its own address', async ({ page 
 	// The switch picks which link the address bar and copy buttons use
 	await page.getByRole('switch', { name: 'Allow editing' }).click();
 	await expect(page).toHaveURL(EDIT);
-	await page.getByRole('button', { name: 'Copy for WhatsApp' }).click();
+	await page.getByRole('button', { name: 'Copy summary' }).click();
 	await toast(page, 'Summary copied');
 	expect(await clipboard(page)).toMatch(/\n\nView or edit the split: http:\/\/localhost:\d+\/e\/[0-9a-f-]{36}$/);
 	await page.getByRole('switch', { name: 'Allow editing' }).click();
@@ -197,7 +197,7 @@ test('copies the receipt as an image, on view links too', async ({ page, browser
 	expect(size.h).toBeCloseTo(224, -1);
 });
 
-test('on phones, WhatsApp gets the receipt image with the summary as its caption', async ({ page }) => {
+test('on phones, one Share button sends the receipt image with the summary as its caption', async ({ page }) => {
 	// A stand-in share sheet that records what it was given
 	await page.addInitScript(() => {
 		navigator.canShare = () => true;
@@ -205,9 +205,10 @@ test('on phones, WhatsApp gets the receipt image with the summary as its caption
 	});
 	await open(page);
 	// With no one on the bill there's no receipt to share
-	await expect(page.getByRole('button', { name: 'Share to WhatsApp' })).toBeDisabled();
+	await expect(page.getByRole('button', { name: 'Share', exact: true })).toBeDisabled();
 	await sampleBill(page);
-	await page.getByRole('button', { name: 'Share to WhatsApp' }).click();
+	await expect(page.getByRole('button', { name: /Copy summary|Copy image|Share image/ })).toHaveCount(0);
+	await page.getByRole('button', { name: 'Share', exact: true }).click();
 	const shared = await page.waitForFunction(() => (window as any).shared).then((h) => h.jsonValue());
 	expect(shared.type).toBe('image/png');
 	expect(shared.text).toMatch(/^🧾 \*Bill split\*\nTotal: \*£52\.80\*[\s\S]*\n\nSee the full split: http:\/\/localhost:\d+\/[0-9a-f-]{36}$/);
