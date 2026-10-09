@@ -85,6 +85,14 @@
 	* {
 		@apply border-border outline-ring/50;
 	}
+	/* Tailwind's reset gives buttons the default cursor; anything clickable gets a pointer */
+	button:not(:disabled),
+	[role='button']:not([aria-disabled='true']),
+	[role='option']:not([data-disabled]),
+	label[for],
+	select:not(:disabled) {
+		cursor: pointer;
+	}
 	body {
 		@apply bg-background text-foreground;
 		padding-top: env(safe-area-inset-top, 0px);
