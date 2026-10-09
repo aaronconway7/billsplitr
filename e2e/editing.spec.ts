@@ -181,10 +181,10 @@ test('keeps the bill in this browser', async ({ page }) => {
 	await expect(page).toHaveURL('/');
 });
 
-test('WhatsApp summary', async ({ page }) => {
+test('summary text', async ({ page }) => {
 	await page.route('**/api/bills', (r) => r.abort());
 	await sampleBill(page);
-	await page.getByRole('button', { name: 'Copy for WhatsApp' }).click();
+	await page.getByRole('button', { name: 'Copy summary' }).click();
 	await toast(page, 'Summary copied');
 	const text = await clipboard(page);
 	expect(text).toMatch(
