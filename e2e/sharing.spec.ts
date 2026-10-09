@@ -119,7 +119,7 @@ test('old #hash links open read-only', async ({ page }) => {
 	await open(page, '/#' + LEGACY_HASH);
 	await expect(page.getByText('This shared bill is read-only.')).toBeVisible();
 	await expect(result(page, 'Zoë')).toContainText('€11.25');
-	await expect(page.getByText('Total€52.80')).toBeVisible();
+	await expect(page.getByText('Total€53.43')).toBeVisible();
 	await expect(item(page, 'Pizza 🍕')).toContainText('€12.50');
 	// Copy link shares the same address
 	await page.getByRole('button', { name: 'Copy link' }).click();
@@ -211,7 +211,7 @@ test('on phones, one Share button sends the receipt image with the summary as it
 	await page.getByRole('button', { name: 'Share', exact: true }).click();
 	const shared = await page.waitForFunction(() => (window as any).shared).then((h) => h.jsonValue());
 	expect(shared.type).toBe('image/png');
-	expect(shared.text).toMatch(/^🧾 \*Bill split\*\nTotal: \*£52\.80\*[\s\S]*\n\nSee the full split: http:\/\/localhost:\d+\/[0-9a-f-]{36}$/);
+	expect(shared.text).toMatch(/^🧾 \*Bill split\*\nTotal: \*£53\.43\*[\s\S]*\n\nSee the full split: http:\/\/localhost:\d+\/[0-9a-f-]{36}$/);
 });
 
 test('on phones, Share still sends the image when the edit link can’t be made', async ({ page }) => {

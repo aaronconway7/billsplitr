@@ -14,6 +14,6 @@ export function summary(b: Bill, c: Split, link: string, editable: boolean) {
 	b.p.forEach((p, k) => {
 		if (k !== b.pd) t += '• ' + p + ' – ' + fmt(c.tot[k]) + '\n';
 	});
-	if (c.un) t += '\n⚠️ ' + fmt(c.un) + ' not yet assigned\n';
+	if (c.un) t += '\n⚠️ ' + fmt(c.un + c.unSvc) + ' not yet assigned\n';
 	return (t + '\n' + (editable ? 'View or edit the split: ' : 'See the full split: ') + link).trim();
 }

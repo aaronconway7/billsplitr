@@ -48,7 +48,7 @@
 		</div>
 		{#if c.un || lines.length}
 			<div class="receipt-rule"></div>
-			{#if c.un}<p class="text-sm text-destructive">{money(c.un)} of items aren't assigned to anyone yet.</p>{/if}
+			{#if c.un}<p class="text-sm text-destructive">{money(c.un)} of items{c.unSvc ? ' (+ ' + money(c.unSvc) + ' service)' : ''} aren't assigned to anyone yet.</p>{/if}
 			{#if lines.length}
 				<div class="text-sm text-muted-foreground" class:mt-2={c.un}>
 					{#each lines as l}<div>{l}</div>{/each}
