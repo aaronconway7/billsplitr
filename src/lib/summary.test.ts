@@ -28,4 +28,9 @@ describe('summary', () => {
 			'🧾 *Bill split*\nTotal: *£42.50*\n\n*Who owes what:*\n• Ann – £16.25\n• Bob – £16.25\n• Cat – £10.00\n\nView or edit the split: https://x/e/1'
 		);
 	});
+
+	it('shows a fixed service as an amount', () => {
+		const b: Bill = { ...bill, sc: 5, sm: 1 };
+		expect(summary(b, calc(b), 'https://x/1', false)).toContain('Total: *£52.49* (incl. £5.00 service)');
+	});
 });

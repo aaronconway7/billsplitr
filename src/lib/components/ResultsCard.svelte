@@ -2,6 +2,7 @@
 	import { Separator } from '#lib/components/ui/separator/index.js';
 	import { money as fmt } from '#lib/currencies.ts';
 	import { app, currentSplit, togglePayer } from '#lib/editor.svelte.ts';
+	import { serviceLabel } from '#lib/summary.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
 
@@ -22,7 +23,7 @@
 				<li class="flex items-center justify-between py-2.5">
 					<div>
 						<div class="font-semibold">{p}</div>
-						<div class="text-sm text-muted-foreground">{money(c.own[k])}{b.pd === k ? ' · paid' : ''}</div>
+						<div class="text-sm text-muted-foreground">{money(c.own[k])}{c.svcBy[k] ? ' + ' + money(c.svcBy[k]) + ' service' : ''}{b.pd === k ? ' · paid' : ''}</div>
 					</div>
 					<div class="text-lg font-bold tabular-nums">{money(c.tot[k])}</div>
 				</li>
@@ -33,9 +34,9 @@
 	{/if}
 	<div class="mt-2 space-y-2 tabular-nums">
 		<div class="flex justify-between"><span>Items</span><span>{money(c.sub)}</span></div>
-		{#if c.svc}<div class="flex justify-between"><span>Service / tip ({b.sc}%)</span><span>{money(c.svc)}</span></div>{/if}
+		{#if c.svc}<div class="flex justify-between"><span>Service / tip{b.sm ? '' : ' (' + serviceLabel(b) + ')'}</span><span>{money(c.svc)}</span></div>{/if}
 		<Separator />
-		<div class="flex justify-between text-lg font-bold"><span>Total</span><span>{money(c.sub + c.svc)}</span></div>
+		<div class="flex justify-between text-lg font-bold"><span>Total</span><span>{money(c.total)}</span></div>
 	</div>
 	{#if c.un}<p class="mt-2 text-sm text-destructive">{money(c.un)} of items aren't assigned to anyone yet.</p>{/if}
 	{#if lines.length}
