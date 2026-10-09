@@ -4,6 +4,7 @@
 	import { Input } from '#lib/components/ui/input/index.js';
 	import { curDec, curMeta, curStep, money } from '#lib/currencies.ts';
 	import { addItem, app, assignAll, removeItem, toggleShare, updateItem } from '#lib/editor.svelte.ts';
+	import { fadeIn, reflow, rowIn, rowOut } from '#lib/motion.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
 
@@ -41,8 +42,9 @@
 	{/if}
 	{#if app.bill.i.length}
 		<ul class="mt-1.5 divide-y" aria-label="Items">
-			{#each app.bill.i as it, j}
-				<li class="py-3">
+			<!-- Keyed by the item itself, so removing one animates that row -->
+			{#each app.bill.i as it, j (it)}
+				<li class="py-3" in:rowIn|global out:rowOut|global animate:reflow>
 					<div class="flex items-center justify-between gap-2">
 						{#if app.ro}
 							<span class="font-semibold">{it.n}</span>
@@ -68,6 +70,6 @@
 			{/each}
 		</ul>
 	{:else}
-		<p class="mt-3 text-sm text-muted-foreground">No items yet.</p>
+		<p class="mt-3 text-sm text-muted-foreground" in:fadeIn>No items yet.</p>
 	{/if}
 </Section>
