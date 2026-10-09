@@ -30,7 +30,7 @@ async function shrink(file: Blob) {
 	return c.toDataURL('image/jpeg', 0.8).split(',')[1];
 }
 
-// A vision model takes a few seconds (the function allows Gemini up to 50s), so this allows longer than api()'s 5s
+// Reading a photo takes a second or two, but the function gives Gemini up to 25s, so this allows longer than api()'s 5s
 export async function scanReceipt(file: Blob): Promise<Receipt> {
 	let image: string;
 	try {
@@ -44,7 +44,7 @@ export async function scanReceipt(file: Blob): Promise<Receipt> {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ image, mime: 'image/jpeg' }),
-			signal: AbortSignal.timeout(60000)
+			signal: AbortSignal.timeout(35000)
 		});
 	} catch {
 		throw new ScanError("Couldn't reach the scanner, check your connection");

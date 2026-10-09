@@ -1,7 +1,9 @@
-// Reading a receipt photo with Gemini (netlify/functions/scan.mjs); the free tier is plenty for this app.
-// GEMINI_MODEL overrides the model, since Google renames them often
+// Reading a receipt photo with Gemini (netlify/functions/scan.mjs), on the free tier.
+// Flash-Lite reads receipts as well as Flash in a second or two, and its free tier allows far more
+// requests (the newest Flash allowed 5 a minute and 20 a day, and took up to 30s when busy).
+// GEMINI_MODEL overrides it, since Google renames models often
 
-export const MODEL = 'gemini-3.8-flash';
+export const MODEL = 'gemini-3.5-flash-lite';
 
 export const PROMPT = `This is a photo of a restaurant or shop receipt. List what was bought so a group can split it.
 - items: one entry per printed line item, in order. name as printed (expand obvious abbreviations), qty (1 if not shown) and price, the line's total in the receipt's currency.

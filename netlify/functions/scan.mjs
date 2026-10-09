@@ -26,14 +26,9 @@ export default async (req) => {
       thinkingConfig: { thinkingLevel: 'low' },
     },
   });
-  const think = new URL(req.url).searchParams.get('think');
-  const bodyFor = () => (process.env.CONTEXT !== 'production' && think ? body.replace('"thinkingLevel":"low"', think === 'none' ? '' : `"thinkingLevel":"${think}"`).replace('"thinkingConfig":{}', '"thinkingConfig":{}') : body);
-  // DEBUG (preview only): ?model= and ?think= to compare models
-  const q = new URL(req.url).searchParams, dbg = process.env.CONTEXT !== 'production';
-  const model = (dbg && q.get('model')) || process.env.GEMINI_MODEL || MODEL;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-  const t0 = Date.now();
-  // Functions get 60s; Gemini usually takes 3-10s, and an overloaded model (500/503) is worth one more try
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL || MODEL}:generateContent`;
+  // Netlify drops requests after about 30s. Gemini usually answers in a second or two, and an overloaded
+  // model (500/503) is worth one more try
   const end = Date.now() + 25_000;
   let r;
   for (let attempt = 0; ; attempt++) {
@@ -41,7 +36,7 @@ export default async (req) => {
       r = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: bodyFor(),
+        body,
         signal: AbortSignal.timeout(end - Date.now()),
       });
     } catch (e) {
@@ -54,11 +49,9 @@ export default async (req) => {
   if (r.status === 429) return new Response('Out of scans for now', { status: 429 });
   if (!r.ok) {
     console.error('Gemini', r.status, await r.text());
-    return new Response(`Scan failed (Gemini ${r.status})` + (dbg ? ' ' + (await r.text().catch(() => '')).slice(0, 300) : ''), { status: 502 });
+    return new Response(`Scan failed (Gemini ${r.status})`, { status: 502 });
   }
   const out = await r.json().catch(() => null);
-  console.log('Gemini', model, Date.now() - t0, 'ms', JSON.stringify(out?.usageMetadata));
-  if (dbg && q.get('debug')) return Response.json({ model, ms: Date.now() - t0, usage: out?.usageMetadata, out: out?.candidates?.[0]?.content?.parts?.map((/** @type {any} */ p) => p.text?.slice(0, 200)) });
   try {
     return Response.json(cleanReceipt(JSON.parse(out.candidates[0].content.parts.find((/** @type {any} */ p) => p.text && !p.thought).text)));
   } catch {

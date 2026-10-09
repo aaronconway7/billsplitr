@@ -31,7 +31,7 @@ npx netlify-cli dev
 
 Then open http://localhost:8888. This runs the SvelteKit dev server behind Netlify, so shared links (`/<uuid>` to view, `/e/<uuid>` to edit) and their functions work too.
 
-Receipt scanning needs a free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey), set as `GEMINI_API_KEY` in the Netlify site's environment variables (`netlify dev` uses it too). `GEMINI_MODEL` optionally overrides the model in `netlify/lib/receipt.mjs`. Without a key the scan button says scanning isn't set up. On the free tier Google may use the photos to improve its models.
+Receipt scanning needs a free Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey), set as `GEMINI_API_KEY` in the Netlify site's environment variables (`netlify dev` uses it too). `GEMINI_MODEL` optionally overrides the model in `netlify/lib/receipt.mjs` (Flash-Lite, chosen for its speed and much larger free quota). Without a key the scan button says scanning isn't set up. On the free tier Google may use the photos to improve its models.
 
 `npm run dev` runs the app on its own at http://localhost:5173. Without the functions, "Copy link" falls back to a compressed long link (a snapshot) and edit links aren't available.
 
