@@ -1,4 +1,4 @@
-import { toast } from './toast.svelte.ts';
+import { toast } from 'svelte-sonner';
 
 export function copy(txt: string, msg: string) {
 	const fallback = () => {

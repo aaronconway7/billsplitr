@@ -3,7 +3,7 @@ import { api } from './api.ts';
 import { emptyBill, type Bill } from './bill.ts';
 import { dec, enc, encZ, norm } from './codec.ts';
 import { curOk } from './currencies.ts';
-import { toast } from './toast.svelte.ts';
+import { toast } from 'svelte-sonner';
 
 // mode: 'local' (bill only in this browser, or a legacy #hash link), 'edit' (/e/<editId>), 'view' (/<viewId>)
 export const app = $state({
