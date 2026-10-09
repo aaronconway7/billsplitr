@@ -7,7 +7,6 @@
 	import ResultsCard from '#lib/components/ResultsCard.svelte';
 	import ServiceCard from '#lib/components/ServiceCard.svelte';
 	import ShareCard from '#lib/components/ShareCard.svelte';
-	import Toast from '#lib/components/Toast.svelte';
 	import { boot, connect, flushOnHide } from '#lib/state.svelte.ts';
 	import { stickySide } from '#lib/stickySide.ts';
 
@@ -18,19 +17,20 @@
 <svelte:window onpagehide={flushOnHide} />
 
 <Deco />
-<main>
+<main class="mx-auto max-w-[640px] px-4 pt-5 pb-[60px] min-[960px]:max-w-[1040px]">
 	<Header />
-	<div class="layout">
-		<div class="steps">
+	<div class="flex flex-col gap-3.5 min-[960px]:grid min-[960px]:grid-cols-[minmax(0,1fr)_360px] min-[960px]:items-start min-[960px]:gap-5">
+		<div class="flex flex-col gap-3.5">
 			<PeopleCard />
 			<ItemsCard />
 			<ServiceCard />
 		</div>
-		<aside class="side" {@attach stickySide}>
+		<aside class="flex flex-col gap-3.5 min-[960px]:sticky min-[960px]:top-(--st)" {@attach stickySide}>
 			<ResultsCard />
 			<ShareCard />
 		</aside>
 	</div>
 </main>
-<footer>Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer">Aaron</a> 🍔</footer>
-<Toast />
+<footer class="mx-auto max-w-[640px] px-4 pb-10 text-center text-sm text-muted-foreground min-[960px]:max-w-[1040px]">
+	Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary hover:underline">Aaron</a> 🍔
+</footer>

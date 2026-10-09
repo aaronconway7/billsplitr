@@ -18,7 +18,7 @@ Live demo: https://usebillsplitr.netlify.app/
 - Assign items to specific people
 - Optional service/tip percentage
 - Short shareable links: read-only view links and edit links, always showing the latest version
-- A SvelteKit single-page app, with a small Netlify backend for shared links
+- A SvelteKit single-page app styled with shadcn-svelte and Tailwind CSS, with a small Netlify backend for shared links
 - Shared links expire 30 days after the last edit (a daily scheduled function deletes them)
 
 ## Run locally
@@ -37,10 +37,10 @@ Other scripts: `npm test` (unit tests), `npm run check` (type-check) and `npm ru
 ## Project files
 
 - `src/routes/[...path=bill]/+page.svelte` — the page; `src/params.ts` limits it to `/`, `/<uuid>` and `/e/<uuid>`
-- `src/lib/components/` — the UI, one component per card
+- `src/lib/components/` — the UI, one component per card; `ui/` holds the shadcn-svelte components (add more with `npx shadcn-svelte@latest add <name>`)
 - `src/lib/state.svelte.ts` — bill state, editing, sharing, saving and loading
 - `src/lib/codec.ts` — the share format (must stay compatible with existing links), `split.ts` — the maths, `currencies.ts`
-- `src/app.html` — page head and meta tags; `src/app.css` — styles
+- `src/app.html` — page head and meta tags; `src/app.css` — Tailwind setup and the brand theme (shadcn colour tokens for light and dark)
 - `netlify/functions/` — create (`POST /api/bills`), save (`PUT /api/bills/<editId>`), the shared-bill page (`/<viewId>`, `/e/<editId>`, which embeds the bill in `build/index.html`) and the daily expiry job (`expire.mjs`)
 - `netlify/lib/bills.mjs` — Netlify Blobs stores and validation shared by the functions
 - `static/` — social preview image, favicons and `oembed.json`
