@@ -67,7 +67,7 @@ export function cleanReceipt(raw) {
 // Gemini's 429s say which free-tier limit ran out (a quotaId like GenerateRequestsPerDayPerProjectPerModel-FreeTier)
 // and, for per-minute ones, how long to wait. Daily limits reset at midnight Pacific time.
 // Returns { why: 'day' | 'minute', until: ms timestamp }
-export function quotaBlock(/** @type {any} */ err, now = Date.now()) {
+export function quotaReset(/** @type {any} */ err, now = Date.now()) {
   const details = Array.isArray(err?.error?.details) ? err.error.details : [];
   const ids = details.flatMap((/** @type {any} */ d) => d?.violations ?? []).map((/** @type {any} */ v) => String(v?.quotaId ?? ''));
   if (ids.some((/** @type {string} */ id) => /PerDay/i.test(id))) return { why: 'day', until: now + msToPacificMidnight(now) };
