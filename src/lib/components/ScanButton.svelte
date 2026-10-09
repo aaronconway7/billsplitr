@@ -31,7 +31,7 @@
 </script>
 
 <!-- Just the icon on small phones, where the header is tight -->
-<Button variant="outline" size="sm" aria-label="Scan a receipt" title="Scan a receipt" disabled={scanning} onclick={() => photo?.click()}>
+<Button variant="outline" size="sm" aria-label="Scan a receipt" title="Scan a receipt" class="max-[480px]:w-8 max-[480px]:px-0" disabled={scanning} onclick={() => photo?.click()}>
 	{#if scanning}<LoaderIcon class="animate-spin" />{:else}<CameraIcon />{/if}
 	<span class="max-[480px]:hidden">Scan receipt</span>
 </Button>

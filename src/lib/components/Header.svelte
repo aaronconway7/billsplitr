@@ -1,4 +1,5 @@
 <script lang="ts">
+	import FilePlusIcon from '@lucide/svelte/icons/file-plus';
 	import * as AlertDialog from '#lib/components/ui/alert-dialog/index.js';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Select from '#lib/components/ui/select/index.js';
@@ -14,10 +15,14 @@
 	<h1 class="text-[28px] leading-tight font-bold tracking-tight">Bill<span class="text-primary">Splitr</span></h1>
 	<div class="flex items-center gap-2">
 		{#if !app.ro}<ScanButton />{/if}
-		<Button variant="outline" size="sm" onclick={() => (confirming = true)}>New bill</Button>
+		<!-- Small phones get icons and a short currency, so the header stays on one line -->
+		<Button variant="outline" size="sm" aria-label="New bill" title="New bill" class="max-[480px]:w-8 max-[480px]:px-0" onclick={() => (confirming = true)}>
+			<FilePlusIcon class="min-[481px]:hidden" /><span class="max-[480px]:hidden">New bill</span>
+		</Button>
 		<Select.Root type="single" bind:value={() => app.bill.c, setCurrency} disabled={app.ro}>
-			<Select.Trigger size="sm" aria-label="Currency" class="min-w-[190px] bg-card max-[480px]:max-w-[124px] max-[480px]:min-w-0">
-				<span class="truncate">{curLabel(curMeta(app.bill.c))}</span>
+			<Select.Trigger size="sm" aria-label="Currency" class="min-w-[190px] bg-card max-[480px]:min-w-0">
+				<span class="truncate max-[480px]:hidden">{curLabel(curMeta(app.bill.c))}</span>
+				<span class="min-[481px]:hidden">{curMeta(app.bill.c).flag} {curMeta(app.bill.c).sym}</span>
 			</Select.Trigger>
 			<Select.Content class="max-h-80">
 				{#each C as c (c.code)}<Select.Item value={c.code} label={curLabel(c)} />{/each}
