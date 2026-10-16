@@ -1,4 +1,4 @@
-import type { Bill, Item } from './bill.ts';
+import { MAX_W, type Bill, type Item } from './bill.ts';
 import { curOk } from './currencies.ts';
 
 // The share string format is stored in blobs and old #hash links, so it must not change:
@@ -36,8 +36,9 @@ function u8d(s: string) {
 	return u;
 }
 
-// A fixed-amount service adds a trailing 1; % bills pack exactly as before
-export const pack = (b: Bill) => JSON.stringify([b.p, b.i.map((it) => [it.n, it.a, it.s]), b.sc, b.pd, b.c, ...(b.sm ? [1] : [])]);
+// A fixed-amount service adds a trailing 1, and an uneven item its weights; other bills pack exactly as before
+const packItem = (it: Item) => (it.w?.some((v) => v !== 1) ? [it.n, it.a, it.s, it.w] : [it.n, it.a, it.s]);
+export const pack = (b: Bill) => JSON.stringify([b.p, b.i.map(packItem), b.sc, b.pd, b.c, ...(b.sm ? [1] : [])]);
 
 export function enc(b: Bill) {
 	try {
@@ -66,17 +67,24 @@ export async function dec(h: string) {
 	return new Response(st).text();
 }
 
+// Weights are whole numbers from 1 to MAX_W; anything else counts as 1
+const normW = (v: unknown) => (Number.isInteger(v) && (v as number) >= 1 && (v as number) <= MAX_W ? (v as number) : 1);
+
 function normItem(it: unknown): Item {
-	let n: unknown = '', a = 0, s: unknown = [];
-	if (Array.isArray(it)) [n, a, s] = [it[0], +it[1], it[2]];
+	let n: unknown = '', a = 0, s: unknown = [], w: unknown;
+	if (Array.isArray(it)) [n, a, s, w] = [it[0], +it[1], it[2], it[3]];
 	else if (it && typeof it === 'object') {
 		const o = it as Record<string, unknown>;
-		[n, a, s] = [o.n, Number(o.a), o.s];
+		[n, a, s, w] = [o.n, Number(o.a), o.s, o.w];
 	}
+	// Weights stay lined up with their sharers as bad indexes are dropped
+	const ws = Array.isArray(w) ? w : [];
+	const ok = (Array.isArray(s) ? s : []).map((x, k) => [x, normW(ws[k])]).filter(([x]) => Number.isInteger(x) && x >= 0) as number[][];
 	return {
 		n: n ? String(n) : '',
 		a: isFinite(a) && a >= 0 ? a : 0,
-		s: Array.isArray(s) ? s.filter((x) => Number.isInteger(x) && x >= 0) : []
+		s: ok.map(([x]) => x),
+		...(ok.some(([, v]) => v !== 1) && { w: ok.map(([, v]) => v) })
 	};
 }
 

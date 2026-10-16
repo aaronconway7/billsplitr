@@ -1,10 +1,14 @@
 <script lang="ts">
+	import MinusIcon from '@lucide/svelte/icons/minus';
+	import PlusIcon from '@lucide/svelte/icons/plus';
 	import XIcon from '@lucide/svelte/icons/x';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
+	import { MAX_W } from '#lib/bill.ts';
 	import { curDec, curMeta, curStep, money } from '#lib/currencies.ts';
-	import { addItem, app, assignAll, removeItem, toggleShare, updateItem } from '#lib/editor.svelte.ts';
+	import { addItem, app, assignAll, removeItem, setUneven, stepShare, toggleShare, updateItem } from '#lib/editor.svelte.ts';
 	import { fadeIn, reflow, rowIn, rowOut } from '#lib/motion.ts';
+	import { itemShares, portion } from '#lib/split.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
 
@@ -49,6 +53,7 @@
 		<ul class="mt-1.5 divide-y" aria-label="Items">
 			<!-- Keyed by the item itself, so removing one animates that row -->
 			{#each app.bill.i as it, j (it)}
+				{@const shares = itemShares(it, app.bill.p.length)}
 				<li class="py-3" in:rowIn|global out:rowOut|global animate:reflow>
 					<div class="flex items-start justify-between gap-2">
 						{#if app.ro}
@@ -82,7 +87,35 @@
 						{/each}
 						{#if app.ro && !app.bill.p.some((_, k) => it.s.includes(k))}<span class="text-sm text-muted-foreground">Unassigned</span>{/if}
 						{#if !app.ro && app.bill.p.length > 1}<Chip onclick={() => assignAll(j)}>Everyone</Chip>{/if}
+						<!-- The same quiet button turns an uneven split on and off -->
+						{#if !app.ro && shares.length > 1}
+							<button type="button" class="h-8 px-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline" onclick={() => setUneven(j, !it.w)}>
+								{it.w ? 'Split evenly' : 'Split unevenly'}
+							</button>
+						{/if}
 					</div>
+					<!-- Uneven items show each sharer's portion and what it costs; the weights behind them stay hidden -->
+					{#if it.w && shares.length > 1}
+						{@const sum = shares.reduce((a, v) => a + v.w, 0)}
+						<ul class="mt-3 divide-y divide-border/60 rounded-xl bg-muted/60 px-3" aria-label="Shares of {it.n}">
+							{#each shares as v (v.at)}
+								{@const who = app.bill.p[v.x]}
+								<li class="flex items-center gap-3 py-2 text-sm">
+									<span class="min-w-0 flex-1 truncate">{who}</span>
+									{#if app.ro}
+										<span class="text-muted-foreground">{portion(v.w, sum)}</span>
+									{:else}
+										<span class="inline-flex items-center rounded-full border bg-background">
+											<Button variant="ghost" size="icon-xs" class="size-7 rounded-full" aria-label="Less for {who}" disabled={v.w <= 1} onclick={() => stepShare(j, v.at, -1)}><MinusIcon /></Button>
+											<span class="w-9 text-center font-medium">{portion(v.w, sum)}</span>
+											<Button variant="ghost" size="icon-xs" class="size-7 rounded-full" aria-label="More for {who}" disabled={v.w >= MAX_W} onclick={() => stepShare(j, v.at, 1)}><PlusIcon /></Button>
+										</span>
+									{/if}
+									<span class="w-16 text-right font-semibold tabular-nums">{money(v.pence, app.bill.c)}</span>
+								</li>
+							{/each}
+						</ul>
+					{/if}
 				</li>
 			{/each}
 		</ul>

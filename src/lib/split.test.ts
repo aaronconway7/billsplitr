@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Bill } from './bill.ts';
 import { money } from './currencies.ts';
-import { calc } from './split.ts';
+import { calc, itemShares, portion } from './split.ts';
 
 const bill = (b: Partial<Bill>): Bill => ({ p: ['A', 'B', 'C'], i: [], sc: 0, pd: -1, c: 'GBP', ...b });
 
@@ -49,6 +49,20 @@ describe('calc', () => {
 		expect(calc(bill({ sc: 5, sm: 1, i: [{ n: 'x', a: 5, s: [] }] }))).toMatchObject({ svc: 500, unSvc: 500, total: 1000, tot: [0, 0, 0] });
 	});
 
+	it('splits an uneven item by weight, pennies by largest remainder', () => {
+		const c = calc(bill({ sc: 10, i: [{ n: 'x', a: 10, s: [2, 0], w: [2, 1] }] }));
+		expect(c.own).toEqual([333, 0, 667]);
+		expect(c.tot).toEqual([366, 0, 734]);
+		expect(c.total).toBe(1100);
+	});
+
+	it('leaves removed people out of an uneven item', () => {
+		expect(itemShares({ n: 'x', a: 9, s: [0, 7, 1], w: [1, 5, 2] }, 3)).toEqual([
+			{ x: 0, at: 0, w: 1, pence: 300 },
+			{ x: 1, at: 2, w: 2, pence: 600 }
+		]);
+	});
+
 	it('counts unassigned items, and items shared with removed people', () => {
 		const c = calc(bill({ sc: 10, i: [{ n: 'x', a: 5, s: [] }, { n: 'y', a: 2, s: [7] }] }));
 		expect(c).toMatchObject({ un: 700, unSvc: 70, sub: 700, svc: 70, total: 770, tot: [0, 0, 0] });
@@ -66,6 +80,17 @@ describe('calc', () => {
 		const after = calc(bill({ sc: 12.5, i: i.map((it) => (it.n === 'd' ? { ...it, s: [0] } : it)) }));
 		expect(after.svcBy[2]).toBe(before.svcBy[2]);
 		expect(after.tot.reduce((a, v) => a + v, 0) + after.un + after.unSvc).toBe(after.total);
+	});
+});
+
+describe('portion', () => {
+	it('shows simple fractions, reduced, and a % otherwise', () => {
+		expect(portion(2, 3)).toBe('⅔');
+		expect(portion(2, 4)).toBe('½');
+		expect(portion(3, 7)).toBe('3/7');
+		expect(portion(5, 12)).toBe('5/12');
+		expect(portion(4, 13)).toBe('31%');
+		expect(portion(3, 3)).toBe('all');
 	});
 });
 
