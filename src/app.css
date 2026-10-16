@@ -123,4 +123,8 @@
 	.receipt-rule {
 		@apply my-3 border-t border-dashed border-muted-foreground/40;
 	}
+	/* A rubber "PAID" stamp beside the payer's name */
+	.stamp {
+		@apply ml-2 shrink-0 -rotate-6 self-center rounded-sm border-2 border-primary px-1 font-mono text-[11px] leading-tight font-bold tracking-widest text-primary uppercase;
+	}
 }
