@@ -1,5 +1,5 @@
 import { toast } from 'svelte-sonner';
-import { emptyBill, NAME_MAX, type Bill } from './bill.ts';
+import { emptyBill, MAX_W, NAME_MAX, type Bill, type Item } from './bill.ts';
 import { curDec, curMeta, curOk, money } from './currencies.ts';
 import type { Receipt } from './scan.ts';
 import { calc } from './split.ts';
@@ -41,7 +41,11 @@ export function removePerson(k: number) {
 	if (readOnly()) return;
 	const b = app.bill;
 	b.p.splice(k, 1);
-	for (const it of b.i) it.s = it.s.filter((x) => x !== k).map((x) => (x > k ? x - 1 : x));
+	for (const it of b.i) {
+		const at = it.s.indexOf(k);
+		if (at > -1) unshare(it, at);
+		it.s = it.s.map((x) => (x > k ? x - 1 : x));
+	}
 	if (b.pd === k) b.pd = -1;
 	else if (b.pd > k) b.pd--;
 }
@@ -75,15 +79,42 @@ export function removeItem(j: number) {
 	if (!readOnly()) app.bill.i.splice(j, 1);
 }
 
-export function toggleShare(j: number, k: number) {
-	if (readOnly()) return;
-	const s = app.bill.i[j].s, at = s.indexOf(k);
-	if (at > -1) s.splice(at, 1);
-	else s.push(k);
+// Weights line up with sharers; an item left with fewer than two sharers goes back to an even split
+function unshare(it: Item, at: number) {
+	it.s.splice(at, 1);
+	it.w?.splice(at, 1);
+	if (it.s.length < 2) delete it.w;
 }
 
+export function toggleShare(j: number, k: number) {
+	if (readOnly()) return;
+	const it = app.bill.i[j], at = it.s.indexOf(k);
+	if (at > -1) return unshare(it, at);
+	it.s.push(k);
+	it.w?.push(1);
+}
+
+// Newcomers get one share; anyone already sharing keeps theirs
 export function assignAll(j: number) {
-	if (!readOnly()) app.bill.i[j].s = app.bill.p.map((_, k) => k);
+	if (readOnly()) return;
+	const it = app.bill.i[j], w = it.w;
+	const s = app.bill.p.map((_, k) => k);
+	if (w) it.w = s.map((k) => w[it.s.indexOf(k)] ?? 1);
+	it.s = s;
+}
+
+// Uneven items have a weight per sharer, all starting at one share
+export function setUneven(j: number, on: boolean) {
+	if (readOnly()) return;
+	const it = app.bill.i[j];
+	if (on) it.w = it.s.map(() => 1);
+	else delete it.w;
+}
+
+// One more or one fewer share for a sharer of an uneven item
+export function stepShare(j: number, at: number, d: 1 | -1) {
+	const w = app.bill.i[j].w;
+	if (!readOnly() && w) w[at] = Math.min(MAX_W, Math.max(1, w[at] + d));
 }
 
 // A % (fixed false) or an amount. Anything negative, not a number or over 100% means no service

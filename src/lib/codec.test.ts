@@ -43,6 +43,19 @@ describe('codec', () => {
 		expect(norm({ ...fixed })).toHaveProperty('sm', 1);
 	});
 
+	it('round-trips uneven items, packing weights only when some aren’t 1', async () => {
+		const uneven: Bill = { ...bill, i: [{ n: 'Wine', a: 30, s: [0, 1, 2], w: [2, 1, 1] }, { n: 'Pizza', a: 12, s: [0, 1], w: [1, 1] }] };
+		expect(await decode(await encZ(uneven))).toStrictEqual({ ...uneven, i: [uneven.i[0], { n: 'Pizza', a: 12, s: [0, 1] }] });
+		expect(JSON.parse(pack(uneven))[1]).toEqual([['Wine', 30, [0, 1, 2], [2, 1, 1]], ['Pizza', 12, [0, 1]]]);
+	});
+
+	it('keeps weights lined up with valid sharers, and treats bad weights as 1', () => {
+		expect(norm([['A', 'B'], [['x', 5, [0, 'no', 1], [3, 9, 2]]], 0, -1, 'GBP'])?.i[0]).toStrictEqual({ n: 'x', a: 5, s: [0, 1], w: [3, 2] });
+		expect(norm([['A', 'B'], [['x', 5, [0, 1], [0, 1.5]]], 0, -1, 'GBP'])?.i[0]).toStrictEqual({ n: 'x', a: 5, s: [0, 1] });
+		expect(norm({ p: ['A', 'B'], i: [{ n: 'x', a: 5, s: [0, 1], w: [1, 99] }] })?.i[0]).toStrictEqual({ n: 'x', a: 5, s: [0, 1] });
+		expect(norm({ p: ['A', 'B'], i: [{ n: 'x', a: 5, s: [0, 1], w: [4] }] })?.i[0]).toStrictEqual({ n: 'x', a: 5, s: [0, 1], w: [4, 1] });
+	});
+
 	it('accepts the old object format', async () => {
 		const old = { p: ['A', 'B'], i: [{ n: 'Tea', a: '3', s: [0, 'x', -1, 1] }], sc: '10', pd: 'no' };
 		expect(await decode(b64e(JSON.stringify(old)))).toEqual({ p: ['A', 'B'], i: [{ n: 'Tea', a: 3, s: [0, 1] }], sc: 10, pd: -1, c: 'GBP' });
