@@ -179,7 +179,8 @@ test('copies the receipt as an image, on view links too', async ({ page, browser
 	const button = viewer.getByRole('button', { name: 'Copy image' });
 	await button.click();
 	await toast(viewer, 'Receipt image copied');
-	// A 2× PNG of the receipt, less its interactive bits, with 56px of backdrop all round
+	// A 2× PNG of the receipt, less its interactive bits, with 56px of backdrop all round,
+	// widened to at least 4:5 so WhatsApp's chat bubble doesn't crop it
 	const size = await viewer.evaluate(async () => {
 		const [it] = await navigator.clipboard.read();
 		const img = await createImageBitmap(await it.getType('image/png'));
@@ -190,11 +191,14 @@ test('copies the receipt as an image, on view links too', async ({ page, browser
 			const cs = getComputedStyle(s);
 			skipped += s.getBoundingClientRect().height + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
 		}
-		return { w: img.width - r.width * 2, h: img.height - (r.height - skipped) * 2, skipped };
+		return { w: img.width, h: img.height, padW: img.width - r.width * 2, padH: img.height - (r.height - skipped) * 2, skipped };
 	});
 	expect(size.skipped).toBeGreaterThan(0);
-	expect(size.w).toBeCloseTo(224, -1);
-	expect(size.h).toBeCloseTo(224, -1);
+	expect(size.padH).toBeCloseTo(224, -1);
+	expect(size.padW).toBeGreaterThanOrEqual(220);
+	expect(size.w / size.h).toBeGreaterThanOrEqual(0.8);
+	// Only as wide as it needs to be
+	if (size.padW > 230) expect(size.w).toBe(Math.ceil(size.h * 0.8));
 });
 
 test('view links show uneven shares', async ({ page, browser }) => {
