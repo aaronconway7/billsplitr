@@ -70,5 +70,6 @@
 			</div>
 		</div>
 		<p class="mt-5 text-center font-mono text-xs tracking-widest text-muted-foreground">** THANK YOU **</p>
+		<p class="mt-3 text-center font-mono text-xs tracking-widest text-muted-foreground">AC7 © {new Date().getFullYear()}</p>
 	</section>
 </div>
