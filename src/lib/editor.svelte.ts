@@ -1,5 +1,5 @@
 import { toast } from 'svelte-sonner';
-import { emptyBill, MAX_W, type Bill, type Item } from './bill.ts';
+import { emptyBill, MAX_W, NAME_MAX, type Bill, type Item } from './bill.ts';
 import { curDec, curMeta, curOk, money } from './currencies.ts';
 import type { Receipt } from './scan.ts';
 import { calc } from './split.ts';
@@ -147,7 +147,7 @@ export function addScanned(r: Receipt) {
 		sum += price;
 		if (price < 0) off -= price;
 		else {
-			b.i.push({ n: (qty > 1 ? `${qty} × ${name}` : name).slice(0, 40), a: price, s: [] });
+			b.i.push({ n: (qty > 1 ? `${qty} × ${name}` : name).slice(0, NAME_MAX), a: price, s: [] });
 			added++;
 		}
 	}
