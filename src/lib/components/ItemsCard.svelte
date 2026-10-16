@@ -2,6 +2,7 @@
 	import XIcon from '@lucide/svelte/icons/x';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
+	import { NAME_MAX } from '#lib/bill.ts';
 	import { curDec, curMeta, curStep, money } from '#lib/currencies.ts';
 	import { addItem, app, assignAll, removeItem, toggleShare, updateItem } from '#lib/editor.svelte.ts';
 	import { fadeIn, reflow, rowIn, rowOut } from '#lib/motion.ts';
@@ -40,7 +41,7 @@
 <Section title="2 · Items">
 	{#if !app.ro}
 		<div class="flex gap-2">
-			<Input bind:ref={input} bind:value={name} placeholder="Item (e.g. Margherita)" maxlength={40} autocomplete="off" class="h-10" {onkeydown} />
+			<Input bind:ref={input} bind:value={name} placeholder="Item (e.g. Margherita)" maxlength={NAME_MAX} autocomplete="off" class="h-10" {onkeydown} />
 			<Input bind:value={amount} type="number" inputmode="decimal" step={curStep(curDec(cur))} min="0" placeholder={cur.sym} class="h-10 max-w-24" {onkeydown} />
 			<Button size="lg" onclick={add}>Add</Button>
 		</div>
@@ -59,7 +60,7 @@
 								<textarea
 									value={it.n}
 									rows="1"
-									maxlength={40}
+									maxlength={NAME_MAX}
 									autocomplete="off"
 									aria-label="Item name"
 									class="{nameBox} resize-none overflow-hidden border-transparent bg-transparent outline-none transition-[color,box-shadow] hover:border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"

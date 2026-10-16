@@ -47,13 +47,13 @@ const sum = (/** @type {number[]} */ xs) => xs.reduce((a, b) => a + b, 0);
 const near = (/** @type {number} */ a, /** @type {number} */ b) => Math.abs(a - b) < 0.015;
 
 // What the client gets: { items: [{ name, qty, price }], service?: { percent? | amount? }, tax?, total?, currency? }
-// Names fit the 40-character item field; discounts keep their negative price so the client can report them
+// Names fit the 60-character item field (NAME_MAX in src/lib/bill.ts); discounts keep their negative price so the client can report them
 /** @param {any} raw @returns {import('../../src/lib/scan.ts').Receipt} */
 export function cleanReceipt(raw) {
   /** @type {{ name: string, qty: number, price: number, each: number | null }[]} */
   const lines = [];
   for (const it of Array.isArray(raw?.items) ? raw.items : []) {
-    const name = typeof it?.name === 'string' ? it.name.replace(/\s+/g, ' ').trim().slice(0, 40).trim() : '';
+    const name = typeof it?.name === 'string' ? it.name.replace(/\s+/g, ' ').trim().slice(0, 60).trim() : '';
     const price = num(it?.price);
     if (!name || price == null) continue;
     const qty = Number.isInteger(it.qty) && it.qty > 1 && it.qty < 1000 ? it.qty : 1;

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { cleanReceipt, quotaReset } from '../../netlify/lib/receipt.mjs';
-import { emptyBill } from './bill.ts';
+import { emptyBill, NAME_MAX } from './bill.ts';
 import { addScanned, app } from './editor.svelte.ts';
 
 describe('cleanReceipt', () => {
@@ -12,14 +12,14 @@ describe('cleanReceipt', () => {
 				{ name: 'Beer', qty: 2, price: 9 },
 				{ name: 'Nothing', price: 'free' },
 				{ name: 'Voucher', price: -5 },
-				{ name: 'x'.repeat(60), qty: 2.5, price: 1 }
+				{ name: 'x'.repeat(80), qty: 2.5, price: 1 }
 			]
 		});
 		expect(r.items).toEqual([
 			{ name: 'Margherita pizza', qty: 1, price: 12.5 },
 			{ name: 'Beer', qty: 2, price: 9 },
 			{ name: 'Voucher', qty: 1, price: -5 },
-			{ name: 'x'.repeat(40), qty: 1, price: 1 }
+			{ name: 'x'.repeat(NAME_MAX), qty: 1, price: 1 }
 		]);
 	});
 
