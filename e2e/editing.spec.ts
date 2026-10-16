@@ -207,3 +207,27 @@ test('new bill clears everything but the currency', async ({ page }) => {
 	await page.reload();
 	await expect(page.getByText('Add at least two people.')).toBeVisible();
 });
+
+test('splits an item unevenly', async ({ page }) => {
+	await sampleBill(page);
+	const wine = item(page, 'Wine');
+	const shares = page.getByRole('list', { name: 'Shares of Wine' });
+	await wine.getByRole('button', { name: 'Split unevenly' }).click();
+	await expect(shares).toContainText(/Ann\s*⅓\s*£10\.00/);
+	await wine.getByRole('button', { name: 'More for Ann' }).click();
+	await wine.getByRole('button', { name: 'More for Ann' }).click();
+	await expect(shares).toContainText(/Ann\s*⅗\s*£18\.00/);
+	await expect(shares).toContainText(/Bob\s*⅕\s*£6\.00/);
+	await expect(result(page, 'Ann')).toContainText('£24.25');
+	await expect(result(page, 'Cat')).toContainText('£6.00');
+	// Survives a reload
+	await page.reload();
+	await expect(shares).toContainText(/Ann\s*⅗\s*£18\.00/);
+	// Dropping a sharer keeps everyone else's shares
+	await wine.getByRole('button', { name: 'Cat', exact: true }).click();
+	await expect(shares).toContainText(/Ann\s*¾\s*£22\.50/);
+	await expect(shares).toContainText(/Bob\s*¼\s*£7\.50/);
+	await wine.getByRole('button', { name: 'Split evenly' }).click();
+	await expect(shares).toHaveCount(0);
+	await expect(result(page, 'Ann')).toContainText('£21.25');
+});

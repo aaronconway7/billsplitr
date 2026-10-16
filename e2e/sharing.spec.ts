@@ -196,3 +196,19 @@ test('copies the receipt as an image, on view links too', async ({ page, browser
 	expect(size.w).toBeCloseTo(224, -1);
 	expect(size.h).toBeCloseTo(224, -1);
 });
+
+test('view links show uneven shares', async ({ page, browser }) => {
+	await open(page);
+	await sampleBill(page);
+	await item(page, 'Wine').getByRole('button', { name: 'Split unevenly' }).click();
+	await item(page, 'Wine').getByRole('button', { name: 'More for Bob' }).click();
+	await page.getByRole('button', { name: 'Copy link' }).click();
+	await toast(page, 'Link copied');
+	const viewer = await fresh(browser);
+	await open(viewer, await clipboard(page));
+	const shares = viewer.getByRole('list', { name: 'Shares of Wine' });
+	await expect(shares).toContainText(/Bob\s*½\s*£15\.00/);
+	await expect(shares).toContainText(/Cat\s*¼\s*£7\.50/);
+	await expect(shares.getByRole('button')).toHaveCount(0);
+	await expect(result(viewer, 'Bob')).toContainText('£21.25');
+});
