@@ -8,13 +8,16 @@ const NAME = 'billsplitr-receipt.png';
 
 const SCALE = 2;
 
+// WhatsApp crops photos taller than about 5:7 in the chat bubble, so a tall receipt gets a wider backdrop (width / height)
+const MIN_RATIO = 4 / 5;
+
 // The receipt on a gradient backdrop with a soft shadow, Carbon-style, as a 2× PNG
 export async function receiptBlob() {
 	const img = await createImageBitmap(await receiptOnly());
 	const pad = 56 * SCALE;
 	const cv = document.createElement('canvas');
-	cv.width = img.width + pad * 2;
 	cv.height = img.height + pad * 2;
+	cv.width = Math.max(img.width + pad * 2, Math.ceil(cv.height * MIN_RATIO));
 	const ctx = cv.getContext('2d')!;
 	const g = ctx.createLinearGradient(0, 0, cv.width, cv.height);
 	g.addColorStop(0, '#0b7a5a');
@@ -25,7 +28,7 @@ export async function receiptBlob() {
 	ctx.shadowColor = 'rgb(0 0 0 / 0.35)';
 	ctx.shadowBlur = 24 * SCALE;
 	ctx.shadowOffsetY = 10 * SCALE;
-	ctx.drawImage(img, pad, pad);
+	ctx.drawImage(img, Math.round((cv.width - img.width) / 2), pad);
 	return new Promise<Blob>((ok, fail) => cv.toBlob((b) => (b ? ok(b) : fail(new Error('toBlob'))), 'image/png'));
 }
 
