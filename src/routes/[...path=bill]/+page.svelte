@@ -33,6 +33,6 @@
 		</aside>
 	</div>
 </main>
-<footer class="mx-auto max-w-[640px] px-4 pb-10 text-center text-sm text-muted-foreground min-[960px]:max-w-[1040px]">
+<footer class="mx-auto max-w-[640px] px-4 pb-24 text-center text-sm text-muted-foreground min-[960px]:max-w-[1040px]">
 	Created by <a href="https://aaronconway.co.uk" target="_blank" rel="noopener noreferrer" class="font-semibold text-primary hover:underline">Aaron</a> 🍔
 </footer>
