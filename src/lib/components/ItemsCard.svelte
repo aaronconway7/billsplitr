@@ -7,6 +7,7 @@
 	import { MAX_W } from '#lib/bill.ts';
 	import { curDec, curMeta, curStep, money } from '#lib/currencies.ts';
 	import { addItem, app, assignAll, removeItem, setUneven, stepShare, toggleShare, updateItem } from '#lib/editor.svelte.ts';
+	import { fadeIn, reflow, rowIn, rowOut } from '#lib/motion.ts';
 	import { itemShares, portion } from '#lib/split.ts';
 	import Chip from './Chip.svelte';
 	import Section from './Section.svelte';
@@ -25,13 +26,18 @@
 	const onkeydown = (e: KeyboardEvent) => e.key === 'Enter' && add();
 	// Inline fields look like text until hovered or focused
 	const inline = 'h-8 border-transparent bg-transparent px-1.5 shadow-none hover:border-input dark:bg-transparent';
+	// Names wrap on small screens: the textarea sits over an invisible copy of its text (::after), which sets the height
+	const grow = 'grid after:invisible after:[grid-area:1/1] after:border after:border-transparent after:px-1.5 after:py-[3px] after:text-base after:leading-6 after:font-semibold after:whitespace-pre-wrap after:break-words after:content-[attr(data-text)_"_"]';
+	const nameBox = '[grid-area:1/1] rounded-md border px-1.5 py-[3px] text-base leading-6 font-semibold break-words';
 	const price = (a: number) => a.toFixed(curDec(cur));
+	const mirror = (el: HTMLElement) => (el.parentElement!.dataset.text = (el as HTMLTextAreaElement).value);
 	// A cleared field goes back to what's stored
-	function commit(e: Event & { currentTarget: HTMLInputElement }, j: number, key: 'n' | 'a') {
+	function commit(e: Event & { currentTarget: HTMLInputElement | HTMLTextAreaElement }, j: number, key: 'n' | 'a') {
 		const v = e.currentTarget.value;
-		updateItem(j, key === 'n' ? { n: v } : { a: v === '' ? null : parseFloat(v) });
+		updateItem(j, key === 'n' ? { n: v.replace(/\s+/g, ' ') } : { a: v === '' ? null : parseFloat(v) });
 		const it = app.bill.i[j];
 		e.currentTarget.value = key === 'n' ? it.n : price(it.a);
+		if (key === 'n') mirror(e.currentTarget);
 	}
 </script>
 
@@ -45,16 +51,29 @@
 	{/if}
 	{#if app.bill.i.length}
 		<ul class="mt-1.5 divide-y" aria-label="Items">
-			{#each app.bill.i as it, j}
+			<!-- Keyed by the item itself, so removing one animates that row -->
+			{#each app.bill.i as it, j (it)}
 				{@const shares = itemShares(it, app.bill.p.length)}
-				<li class="py-3">
-					<div class="flex items-center justify-between gap-2">
+				<li class="py-3" in:rowIn|global out:rowOut|global animate:reflow>
+					<div class="flex items-start justify-between gap-2">
 						{#if app.ro}
-							<span class="font-semibold">{it.n}</span>
+							<span class="min-w-0 font-semibold break-words">{it.n}</span>
 							<span class="font-bold tabular-nums">{money(Math.round(it.a * 100), app.bill.c)}</span>
 						{:else}
-							<Input value={it.n} maxlength={40} autocomplete="off" aria-label="Item name" class="{inline} -ml-1.5 font-semibold" onchange={(e) => commit(e, j, 'n')} />
-							<span class="flex items-center gap-1">
+							<div class="{grow} -ml-1.5 min-w-0 flex-1" data-text={it.n}>
+								<textarea
+									value={it.n}
+									rows="1"
+									maxlength={40}
+									autocomplete="off"
+									aria-label="Item name"
+									class="{nameBox} resize-none overflow-hidden border-transparent bg-transparent outline-none transition-[color,box-shadow] hover:border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+									oninput={(e) => mirror(e.currentTarget)}
+									onchange={(e) => commit(e, j, 'n')}
+									onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), e.currentTarget.blur())}
+								></textarea>
+							</div>
+							<span class="flex shrink-0 items-center gap-1">
 								<span class="text-sm text-muted-foreground">{cur.sym}</span>
 								<Input value={price(it.a)} type="number" inputmode="decimal" step={curStep(curDec(cur))} min="0" aria-label="Price of {it.n}" class="{inline} w-24 text-right font-bold tabular-nums" onchange={(e) => commit(e, j, 'a')} />
 								<Button variant="ghost" size="icon-xs" class="text-muted-foreground" aria-label="Remove item" onclick={() => removeItem(j)}><XIcon /></Button>
@@ -101,6 +120,6 @@
 			{/each}
 		</ul>
 	{:else}
-		<p class="mt-3 text-sm text-muted-foreground">No items yet.</p>
+		<p class="mt-3 text-sm text-muted-foreground" in:fadeIn>No items yet.</p>
 	{/if}
 </Section>

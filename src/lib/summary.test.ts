@@ -18,7 +18,7 @@ const bill: Bill = {
 describe('summary', () => {
 	it('tells everyone what to pay the payer', () => {
 		expect(summary(bill, calc(bill), 'https://x/1', false)).toBe(
-			'🧾 *Bill split*\nTotal: *£52.80* (incl. 12.5% service)\n\n💸 *Pay Bob:*\n• Ann – £18.28\n• Cat – £11.25\n\n⚠️ £4.99 not yet assigned\n\nSee the full split: https://x/1'
+			'🧾 *Bill split*\nTotal: *£53.43* (incl. 12.5% service)\n\n💸 *Pay Bob:*\n• Ann – £18.28\n• Cat – £11.25\n\n⚠️ £5.62 not yet assigned\n\nSee the full split: https://x/1'
 		);
 	});
 

@@ -8,6 +8,8 @@ export async function open(page: Page, path = '/') {
 	await page.goto(path);
 	// The bill loads after the page does
 	await expect(page.getByRole('heading', { name: 'BillSplitr' })).toBeVisible();
+	// The page is prerendered, so its controls show before they work
+	await expect(page.locator('main[data-ready="true"]')).toBeVisible();
 	await page.waitForFunction(() => document.readyState === 'complete');
 	await page.waitForTimeout(200);
 }

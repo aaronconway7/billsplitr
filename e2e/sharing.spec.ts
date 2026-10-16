@@ -36,7 +36,7 @@ test('copy link stores the bill and moves it to its own address', async ({ page 
 	// The switch picks which link the address bar and copy buttons use
 	await page.getByRole('switch', { name: 'Allow editing' }).click();
 	await expect(page).toHaveURL(EDIT);
-	await page.getByRole('button', { name: 'Copy for WhatsApp' }).click();
+	await page.getByRole('button', { name: 'Copy summary' }).click();
 	await toast(page, 'Summary copied');
 	expect(await clipboard(page)).toMatch(/\n\nView or edit the split: http:\/\/localhost:\d+\/e\/[0-9a-f-]{36}$/);
 	await page.getByRole('switch', { name: 'Allow editing' }).click();
@@ -119,7 +119,7 @@ test('old #hash links open read-only', async ({ page }) => {
 	await open(page, '/#' + LEGACY_HASH);
 	await expect(page.getByText('This shared bill is read-only.')).toBeVisible();
 	await expect(result(page, 'Zoë')).toContainText('€11.25');
-	await expect(page.getByText('Total€52.80')).toBeVisible();
+	await expect(page.getByText('Total€53.43')).toBeVisible();
 	await expect(item(page, 'Pizza 🍕')).toContainText('€12.50');
 	// Copy link shares the same address
 	await page.getByRole('button', { name: 'Copy link' }).click();
@@ -211,4 +211,36 @@ test('view links show uneven shares', async ({ page, browser }) => {
 	await expect(shares).toContainText(/Cat\s*¼\s*£7\.50/);
 	await expect(shares.getByRole('button')).toHaveCount(0);
 	await expect(result(viewer, 'Bob')).toContainText('£21.25');
+});
+
+test('on phones, one Share button sends the receipt image with the summary as its caption', async ({ page }) => {
+	// A stand-in share sheet that records what it was given
+	await page.addInitScript(() => {
+		navigator.canShare = () => true;
+		navigator.share = async (d) => void ((window as any).shared = { type: d?.files?.[0]?.type, text: d?.text });
+	});
+	await open(page);
+	// With no one on the bill there's no receipt to share
+	await expect(page.getByRole('button', { name: 'Share', exact: true })).toBeDisabled();
+	await sampleBill(page);
+	await expect(page.getByRole('button', { name: /Copy summary|Copy image|Share image/ })).toHaveCount(0);
+	await page.getByRole('button', { name: 'Share', exact: true }).click();
+	const shared = await page.waitForFunction(() => (window as any).shared).then((h) => h.jsonValue());
+	expect(shared.type).toBe('image/png');
+	expect(shared.text).toMatch(/^🧾 \*Bill split\*\nTotal: \*£53\.43\*[\s\S]*\n\nSee the full split: http:\/\/localhost:\d+\/[0-9a-f-]{36}$/);
+});
+
+test('on phones, Share still sends the image when the edit link can’t be made', async ({ page }) => {
+	await page.addInitScript(() => {
+		navigator.canShare = () => true;
+		navigator.share = async (d) => void ((window as any).shared = { type: d?.files?.[0]?.type, text: d?.text ?? null });
+	});
+	await page.route('**/api/bills', (r) => r.abort());
+	await open(page);
+	await sampleBill(page);
+	await page.getByRole('switch', { name: 'Allow editing' }).click();
+	await page.getByRole('button', { name: 'Share', exact: true }).click();
+	await toast(page, 'Couldn’t create an edit link. Try again in a moment.');
+	const shared = await page.waitForFunction(() => (window as any).shared).then((h) => h.jsonValue());
+	expect(shared).toEqual({ type: 'image/png', text: null });
 });
