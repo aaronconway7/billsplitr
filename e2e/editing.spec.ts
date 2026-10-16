@@ -14,7 +14,9 @@ test('splits a bill', async ({ page }) => {
 	await sampleBill(page);
 	await expect(result(page, 'Ann')).toContainText('£16.25');
 	await expect(result(page, 'Ann')).toContainText('£18.28');
-	await expect(result(page, 'Bob')).toContainText('£16.25 + £2.03 service · paid');
+	await expect(result(page, 'Bob')).toContainText('£16.25 + £2.03 service');
+	await expect(result(page, 'Bob').getByText('Paid', { exact: true })).toBeVisible();
+	await expect(page.getByText('Paid by Bob')).toBeVisible();
 	await expect(result(page, 'Bob')).toContainText('£18.28');
 	await expect(result(page, 'Cat')).toContainText('£10.00');
 	await expect(result(page, 'Cat')).toContainText('£11.25');
@@ -124,10 +126,11 @@ test('removing a person keeps everyone else’s shares and the payer', async ({ 
 	await expect(item(page, 'Wine').getByRole('button', { name: 'Cat' })).toHaveAttribute('aria-pressed', 'true');
 	await expect(payerChips(page).getByRole('button', { name: 'Bob' })).toHaveAttribute('aria-pressed', 'true');
 	// Bread is still unassigned, so Bob's 343.97p rounds down and the odd penny waits with Bread
-	await expect(result(page, 'Bob')).toContainText('£27.50 + £3.43 service · paid');
+	await expect(result(page, 'Bob')).toContainText('£27.50 + £3.43 service');
+	await expect(page.getByText('Paid by Bob')).toBeVisible();
 	// Removing the payer clears it
 	await page.getByRole('button', { name: 'Remove Bob' }).click();
-	await expect(page.getByText(/· paid/)).toHaveCount(0);
+	await expect(page.getByText(/^Paid/)).toHaveCount(0);
 });
 
 test('removes items', async ({ page }) => {

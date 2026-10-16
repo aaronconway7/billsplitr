@@ -24,6 +24,7 @@
 			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase">BillSplitr</p>
 			<h2 id="results-title" class="mt-1 text-lg font-semibold">Who owes what</h2>
 			<p class="mt-0.5 text-xs text-muted-foreground">{count(b.p.length, 'person', 'people')} · {count(b.i.length, 'item', 'items')}</p>
+			{#if payer !== undefined}<p class="mt-1 text-sm font-semibold break-words text-primary">Paid by {payer}</p>{/if}
 		</header>
 		<div class="receipt-rule"></div>
 		{#if b.p.length}
@@ -32,10 +33,11 @@
 					<li in:rowIn>
 						<div class="flex items-baseline">
 							<span class="min-w-0 font-semibold break-words">{p}</span>
+							{#if b.pd === k}<span class="stamp">Paid</span>{/if}
 							<span class="leader" aria-hidden="true"></span>
 							<span class="font-mono text-lg font-bold tabular-nums"><Tally p={c.tot[k]} c={b.c} /></span>
 						</div>
-						<div class="text-sm text-muted-foreground">{money(c.own[k])}{c.svcBy[k] ? ' + ' + money(c.svcBy[k]) + ' service' : ''}{b.pd === k ? ' · paid' : ''}</div>
+						<div class="text-sm text-muted-foreground">{money(c.own[k])}{c.svcBy[k] ? ' + ' + money(c.svcBy[k]) + ' service' : ''}</div>
 					</li>
 				{/each}
 			</ul>
@@ -48,15 +50,17 @@
 			{#if c.svc}<div class="flex justify-between" in:rowIn out:rowOut><span>Service / tip{b.sm ? '' : ' (' + serviceLabel(b) + ')'}</span><span class="font-mono tabular-nums"><Tally p={c.svc} c={b.c} /></span></div>{/if}
 			<div class="flex justify-between pt-1 text-lg font-bold uppercase"><span>Total</span><span class="font-mono tabular-nums"><Tally p={c.total} c={b.c} /></span></div>
 		</div>
-		{#if c.un || lines.length}
+		{#if c.un}
 			<div in:rowIn out:rowOut>
 				<div class="receipt-rule"></div>
-				{#if c.un}<p class="text-sm text-destructive" in:rowIn out:rowOut>{money(c.un)} of items{c.unSvc ? ' (+ ' + money(c.unSvc) + ' service)' : ''} aren't assigned to anyone yet.</p>{/if}
-				{#if lines.length}
-					<div class="text-sm text-muted-foreground" class:mt-2={c.un} in:rowIn out:rowOut>
-						{#each lines as l}<div in:rowIn>{l}</div>{/each}
-					</div>
-				{/if}
+				<p class="text-sm text-destructive">{money(c.un)} of items{c.unSvc ? ' (+ ' + money(c.unSvc) + ' service)' : ''} aren't assigned to anyone yet.</p>
+			</div>
+		{/if}
+		<!-- Left out of the shared image (the caption carries it); skipped parts must sit directly in the receipt, as the image keeps each part's height -->
+		{#if lines.length}
+			<div class="text-sm text-muted-foreground" class:mt-2={c.un} data-capture="skip" in:rowIn out:rowOut>
+				{#if !c.un}<div class="receipt-rule"></div>{/if}
+				{#each lines as l}<div in:rowIn>{l}</div>{/each}
 			</div>
 		{/if}
 		<!-- Left out of the shared image -->
